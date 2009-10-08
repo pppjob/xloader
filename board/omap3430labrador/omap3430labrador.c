@@ -372,6 +372,10 @@ void prcm_init(void)
 	sr32(CM_CLKSEL2_PLL_IVA2, 0, 5, dpll_param_p->m2);	/* set M2 */
 	sr32(CM_CLKSEL1_PLL_IVA2, 8, 11, dpll_param_p->m);	/* set M */
   	sr32(CM_CLKSEL1_PLL_IVA2, 0, 7, dpll_param_p->n);	/* set N */
+#ifdef OMAP36XX
+	sr32(CM_CLKSEL2_PLL, 21, 3, PER_DCO_SEL);	/* DCO_SEL */
+	sr32(CM_CLKSEL2_PLL, 24, 81, PER_SD_DIV);	/* SD_DIV */
+#endif
 	sr32(CM_CLKEN_PLL_IVA2, 4, 4, dpll_param_p->fsel);	/* FREQSEL */
 	sr32(CM_CLKEN_PLL_IVA2, 0, 3, PLL_LOCK);	/* lock mode */
 	wait_on_value(BIT0, 1, CM_IDLEST_PLL_IVA2, LDELAY);
