@@ -173,6 +173,9 @@ omap3430zoom2_512m_config :    unconfig
 	>> ./include/config-2.h; \
 	mv ./include/config-2.h ./include/config.h
 
+omap3630zoom3_config :    unconfig
+	@./mkconfig $(@:_config=) arm omap3 omap3430labrador
+
 #########################################################################
 
 clean:
