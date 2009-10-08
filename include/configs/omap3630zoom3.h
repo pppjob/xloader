@@ -39,7 +39,7 @@
 #define CONFIG_OMAP36XX          1    /* which is a 36XX */
 #define CONFIG_OMAP34XX          1    /* reuse 34XX */
 #define CONFIG_OMAP3430          1    /* reusde 3430 */
-#define CONFIG_3430LABRADOR      1    /* working on Labrador */
+#define CONFIG_3430ZOOM2_512M    1    /* 512 Memory on zoom2 */
 #define CONFIG_2GBDDR	         1    /* working on Labrador */
 //#define CONFIG_3430_AS_3410    1    /* true for 3430 in 3410 mode */
 
