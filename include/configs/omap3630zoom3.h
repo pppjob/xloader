@@ -39,7 +39,7 @@
 #define CONFIG_OMAP36XX          1    /* which is a 36XX */
 #define CONFIG_OMAP34XX          1    /* reuse 34XX */
 #define CONFIG_OMAP3430          1    /* reusde 3430 */
-#define CONFIG_3430ZOOM2_512M    1    /* 512 Memory on zoom2 */
+#define CONFIG_3630ZOOM3	 1    /* 512 Memory on zoom2 */
 #define CONFIG_2GBDDR	         1    /* working on Labrador */
 //#define CONFIG_3430_AS_3410    1    /* true for 3430 in 3410 mode */
 
@@ -57,8 +57,8 @@
 #define V_SCLK                   V_OSCK
 #endif
 
-//#define PRCM_CLK_CFG2_266MHZ   1    /* VDD2=1.15v - 133MHz DDR */
-#define PRCM_CLK_CFG2_332MHZ     1    /* VDD2=1.15v - 166MHz DDR */
+#define PRCM_CLK_CFG2_400MHZ   1    /* VDD2=1.15v - 133MHz DDR */
+//#define PRCM_CLK_CFG2_332MHZ     1    /* VDD2=1.15v - 166MHz DDR */
 #define PRCM_PCLK_OPP2           1    /* ARM=500MHz - VDD1=1.20v */
 
 /* Memory type */

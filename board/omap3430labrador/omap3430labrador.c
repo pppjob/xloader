@@ -165,7 +165,7 @@ void config_3430sdram_ddr(void)
 	__raw_writel(SDP_SDRC_MR_0_DDR, SDRC_MR_1);
 
 	/* Configure cs1 to be just behind cs0 - 128meg boundary */
-#ifdef CONFIG_3430ZOOM2_512M
+#if defined(CONFIG_3430ZOOM2_512M) || defined(CONFIG_3630ZOOM3)
 	/* 2 * 128M = 256M for cs1 */
 	__raw_writel(0x2, SDRC_CS_CFG);
 #else
@@ -293,6 +293,9 @@ void prcm_init(void)
 	 * and sil_index will get the values for that SysClk for the 
 	 * appropriate silicon rev. 
 	 */
+#ifdef CONFIG_OMAP36XX
+	sil_index = 1;
+#else
 	if(cpu_is_3410())
 		sil_index = 2;
 	else {
@@ -301,6 +304,7 @@ void prcm_init(void)
 		else if(get_cpu_rev() >= CPU_3XX_ES20)
 			sil_index = 1;
 	}	
+#endif
 
 	/* Unlock MPU DPLL (slows things down, and needed later) */
 	sr32(CM_CLKEN_PLL_MPU, 0, 3, PLL_LOW_POWER_BYPASS);
@@ -372,9 +376,9 @@ void prcm_init(void)
 	sr32(CM_CLKSEL2_PLL_IVA2, 0, 5, dpll_param_p->m2);	/* set M2 */
 	sr32(CM_CLKSEL1_PLL_IVA2, 8, 11, dpll_param_p->m);	/* set M */
   	sr32(CM_CLKSEL1_PLL_IVA2, 0, 7, dpll_param_p->n);	/* set N */
-#ifdef OMAP36XX
+#ifdef CONFIG_OMAP36XX
 	sr32(CM_CLKSEL2_PLL, 21, 3, PER_DCO_SEL);	/* DCO_SEL */
-	sr32(CM_CLKSEL2_PLL, 24, 81, PER_SD_DIV);	/* SD_DIV */
+	sr32(CM_CLKSEL2_PLL, 24, 7, PER_SD_DIV);	/* SD_DIV */
 #endif
 	sr32(CM_CLKEN_PLL_IVA2, 4, 4, dpll_param_p->fsel);	/* FREQSEL */
 	sr32(CM_CLKEN_PLL_IVA2, 0, 3, PLL_LOCK);	/* lock mode */
