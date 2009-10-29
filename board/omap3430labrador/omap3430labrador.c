@@ -40,6 +40,26 @@ struct dpll_param {
         unsigned int m2;
 };
 
+#ifdef CONFIG_OMAP36XX
+struct dpll_per_param {
+	unsigned int sys_clk;
+	unsigned int m;
+	unsigned int n;
+	unsigned int clkin;
+	unsigned int sd;
+	unsigned int dco;
+	unsigned int m2;
+	unsigned int m3;
+	unsigned int m4;
+	unsigned int m5;
+	unsigned int m6;
+	unsigned int m2div;
+};
+typedef struct dpll_per_param dpll_per_param;
+#else
+typedef struct dpll_param dpll_per_param;
+#endif
+
 typedef struct dpll_param dpll_param;
 
 #define MAX_SIL_INDEX	3
@@ -254,6 +274,80 @@ void get_sys_clkin_sel(u32 osc_clk, u32 *sys_clkin_sel)
 		*sys_clkin_sel = 0;
 }
 
+static dpll_per_param *_get_per_dpll(int clk_index)
+{
+	dpll_per_param *ret = (dpll_per_param *)get_per_dpll_param();
+	ret += clk_index;
+	return ret;
+}
+
+#ifdef CONFIG_OMAP36XX
+
+#define PER_M_BITS 12
+#define PER_M2_BITS 5
+#define PER_M3_BITS 6
+#define PER_M4_BITS 6
+#define PER_M5_BITS 6
+#define PER_M6_BITS 6
+
+static void per_dpll_init_36XX(int clk_index)
+{
+	dpll_per_param *per;
+
+	per = _get_per_dpll(clk_index);
+
+	sr32(CM_CLKEN_PLL, 16, 3, PLL_STOP);
+	wait_on_value(BIT1, 0, CM_IDLEST_CKGEN, LDELAY);
+
+	sr32(CM_CLKSEL2_PLL,  8, PER_M_BITS, per->m);
+	sr32(CM_CLKSEL2_PLL,  0, 7, per->n);
+	sr32(PRM_CLKSRC_CTRL, 8, 1, per->clkin);
+	sr32(CM_CLKSEL2_PLL, 24, 7, per->sd);
+	sr32(CM_CLKSEL2_PLL, 21, 3, per->dco);
+	sr32(CM_CLKSEL3_PLL,  0, PER_M2_BITS, per->m2);
+	sr32(CM_CLKSEL_DSS,   8, PER_M3_BITS, per->m3);
+	sr32(CM_CLKSEL_DSS,   0, PER_M4_BITS, per->m4);
+	sr32(CM_CLKSEL_CAM,   0, PER_M5_BITS, per->m5);
+	sr32(CM_CLKSEL1_EMU, 24, PER_M6_BITS, per->m6);
+	sr32(CM_CLKSEL_CORE, 12, 2, per->m2div);
+
+	sr32(CM_CLKEN_PLL, 16, 3, PLL_LOCK);	/* lock mode */
+	wait_on_value(BIT1, 2, CM_IDLEST_CKGEN, LDELAY);
+}
+
+#else /* 34xx */
+
+#define PER_M_BITS 11
+#define PER_M2_BITS 5
+#define PER_M3_BITS 5
+#define PER_M4_BITS 5
+#define PER_M5_BITS 5
+#define PER_M6_BITS 5
+
+static void per_dpll_init_34XX(int clk_index)
+{
+	dpll_per_param *dpll_param_p;
+
+	/* Getting the base address to PER  DPLL param table*/
+	dpll_param_p = (dpll_param *)get_per_dpll_param();
+	/* Moving it to the right sysclk base */
+	dpll_param_p = dpll_param_p + clk_index;
+	/* PER DPLL */
+	sr32(CM_CLKEN_PLL, 16, 3, PLL_STOP);
+	wait_on_value(BIT1, 0, CM_IDLEST_CKGEN, LDELAY);
+	sr32(CM_CLKSEL1_EMU, 24, 5, PER_M6X2);	/* set M6 */
+	sr32(CM_CLKSEL_CAM, 0, 5, PER_M5X2);	/* set M5 */
+	sr32(CM_CLKSEL_DSS, 0, 5, PER_M4X2);	/* set M4 */
+	sr32(CM_CLKSEL_DSS, 8, 5, PER_M3X2);	/* set M3 */
+	sr32(CM_CLKSEL3_PLL, 0, 5, dpll_param_p->m2);	/* set M2 */
+	sr32(CM_CLKSEL2_PLL, 8, 11, dpll_param_p->m);	/* set m */
+	sr32(CM_CLKSEL2_PLL, 0, 7, dpll_param_p->n);	/* set n */
+	sr32(CM_CLKEN_PLL, 20, 4, dpll_param_p->fsel);/* FREQSEL */
+	sr32(CM_CLKEN_PLL, 16, 3, PLL_LOCK);	/* lock mode */
+	wait_on_value(BIT1, 2, CM_IDLEST_CKGEN, LDELAY);
+}
+#endif
+
 /******************************************************************************
  * prcm_init() - inits clocks for PRCM as defined in clocks.h
  *   -- called from SRAM, or Flash (using temp SRAM stack).
@@ -336,23 +430,12 @@ void prcm_init(void)
 	sr32(CM_CLKEN_PLL, 0, 3, PLL_LOCK);		/* lock mode */
 	wait_on_value(BIT0, 1, CM_IDLEST_CKGEN, LDELAY);
 
-	/* Getting the base address to PER  DPLL param table*/
-	dpll_param_p = (dpll_param *)get_per_dpll_param();
-	/* Moving it to the right sysclk base */
-	dpll_param_p = dpll_param_p + clk_index;
 	/* PER DPLL */
-	sr32(CM_CLKEN_PLL, 16, 3, PLL_STOP);
-	wait_on_value(BIT1, 0, CM_IDLEST_CKGEN, LDELAY);
-	sr32(CM_CLKSEL1_EMU, 24, 5, PER_M6X2);	/* set M6 */
-	sr32(CM_CLKSEL_CAM, 0, 5, PER_M5X2);	/* set M5 */
-	sr32(CM_CLKSEL_DSS, 0, 5, PER_M4X2);	/* set M4 */
-	sr32(CM_CLKSEL_DSS, 8, 5, PER_M3X2);	/* set M3 */
-	sr32(CM_CLKSEL3_PLL, 0, 5, dpll_param_p->m2);	/* set M2 */
-	sr32(CM_CLKSEL2_PLL, 8, 11, dpll_param_p->m);	/* set m */
-	sr32(CM_CLKSEL2_PLL, 0, 7, dpll_param_p->n);	/* set n */
-	sr32(CM_CLKEN_PLL, 20, 4, dpll_param_p->fsel);/* FREQSEL */
-	sr32(CM_CLKEN_PLL, 16, 3, PLL_LOCK);	/* lock mode */
-	wait_on_value(BIT1, 2, CM_IDLEST_CKGEN, LDELAY);
+#ifdef CONFIG_OMAP36XX
+	per_dpll_init_36XX(clk_index);
+#else
+	per_dpll_init_34XX(clk_index);
+#endif
 
 	/* Getting the base address to MPU DPLL param table*/
 	dpll_param_p = (dpll_param *)get_mpu_dpll_param();
@@ -376,10 +459,6 @@ void prcm_init(void)
 	sr32(CM_CLKSEL2_PLL_IVA2, 0, 5, dpll_param_p->m2);	/* set M2 */
 	sr32(CM_CLKSEL1_PLL_IVA2, 8, 11, dpll_param_p->m);	/* set M */
   	sr32(CM_CLKSEL1_PLL_IVA2, 0, 7, dpll_param_p->n);	/* set N */
-#ifdef CONFIG_OMAP36XX
-	sr32(CM_CLKSEL2_PLL, 21, 3, PER_DCO_SEL);	/* DCO_SEL */
-	sr32(CM_CLKSEL2_PLL, 24, 7, PER_SD_DIV);	/* SD_DIV */
-#endif
 	sr32(CM_CLKEN_PLL_IVA2, 4, 4, dpll_param_p->fsel);	/* FREQSEL */
 	sr32(CM_CLKEN_PLL_IVA2, 0, 3, PLL_LOCK);	/* lock mode */
 	wait_on_value(BIT0, 1, CM_IDLEST_PLL_IVA2, LDELAY);
