@@ -66,7 +66,6 @@ typedef struct dpll_param dpll_param;
 
 /* Following functions are exported from lowlevel_init.S */
 extern dpll_param * get_mpu_dpll_param(void);
-extern dpll_param * get_iva_dpll_param(void);
 extern dpll_param * get_core_dpll_param(void);
 extern dpll_param * get_per_dpll_param(void);
 
@@ -449,20 +448,6 @@ void prcm_init(void)
 	sr32(CM_CLKEN_PLL_MPU, 0, 3, PLL_LOCK); /* lock mode */
 	wait_on_value(BIT0, 1, CM_IDLEST_PLL_MPU, LDELAY);
 
-	/* Getting the base address to IVA DPLL param table*/
-	dpll_param_p = (dpll_param *)get_iva_dpll_param();
-	/* Moving it to the right sysclk and ES rev base */
-	dpll_param_p = dpll_param_p + MAX_SIL_INDEX*clk_index + sil_index;
-	/* IVA DPLL (set to 12*20=240MHz) */
-	sr32(CM_CLKEN_PLL_IVA2, 0, 3, PLL_STOP);
-	wait_on_value(BIT0, 0, CM_IDLEST_PLL_IVA2, LDELAY);
-	sr32(CM_CLKSEL2_PLL_IVA2, 0, 5, dpll_param_p->m2);	/* set M2 */
-	sr32(CM_CLKSEL1_PLL_IVA2, 8, 11, dpll_param_p->m);	/* set M */
-  	sr32(CM_CLKSEL1_PLL_IVA2, 0, 7, dpll_param_p->n);	/* set N */
-	sr32(CM_CLKEN_PLL_IVA2, 4, 4, dpll_param_p->fsel);	/* FREQSEL */
-	sr32(CM_CLKEN_PLL_IVA2, 0, 3, PLL_LOCK);	/* lock mode */
-	wait_on_value(BIT0, 1, CM_IDLEST_PLL_IVA2, LDELAY);
-
 	/* Set up GPTimers to sys_clk source only */
  	sr32(CM_CLKSEL_PER, 0, 8, 0xff);
 	sr32(CM_CLKSEL_WKUP, 0, 1, 1);
@@ -495,11 +480,6 @@ void secure_unlock(void)
 	__raw_writel(UNLOCK_3, OCM_READ_PERMISSION_0);
 	__raw_writel(UNLOCK_3, OCM_WRITE_PERMISSION_0);
 	__raw_writel(UNLOCK_2, OCM_ADDR_MATCH_2);
-
-	/* IVA Changes */
-	__raw_writel(UNLOCK_3, IVA2_REQ_INFO_PERMISSION_0);
-	__raw_writel(UNLOCK_3, IVA2_READ_PERMISSION_0);
-	__raw_writel(UNLOCK_3, IVA2_WRITE_PERMISSION_0);
 
 	__raw_writel(UNLOCK_1, SMS_RG_ATT0); /* SDRC region 0 public */
 }
