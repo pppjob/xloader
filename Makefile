@@ -152,7 +152,6 @@ omap2430sdp_config :    unconfig
 #########################################################################
 omap3430sdp_config :    unconfig
 	@./mkconfig $(@:_config=) arm omap3 omap3430sdp
-
 omap3430labrador_config :    unconfig
 	@./mkconfig $(@:_config=) arm omap3 omap3430labrador
 
@@ -174,6 +173,9 @@ omap3430zoom2_512m_config :    unconfig
 	mv ./include/config-2.h ./include/config.h
 
 omap3630zoom3_config :    unconfig
+	@./mkconfig $(@:_config=) arm omap3 omap3430labrador
+
+omap3630sdp_config :    unconfig
 	@./mkconfig $(@:_config=) arm omap3 omap3430labrador
 
 #########################################################################
