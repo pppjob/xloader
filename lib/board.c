@@ -69,29 +69,49 @@ char * strcpy(char * dest,const char *src)
 }
 #endif
 
-#ifdef CFG_CMD_FAT
+#ifdef CONFIG_MMC
 int mmc_read_bootloader(int dev, int part)
 {
 	long size;
 	unsigned long offset = CFG_LOADADDR;
 	block_dev_desc_t *dev_desc = NULL;
-	unsigned char ret = 0;
+	unsigned char ret = -1;
 
-	ret = mmc_init(1);
+	ret = mmc_init(dev);
 	if (ret != 0){
 		printf("\n MMC init failed \n");
 		return -1;
 	}
-
+	ret = mmc_support_rawboot_check(dev);
+	if (ret == 0) { /* raw boot supported */
+		ret = -1;
+	#if CFG_CMD_MMC_RAW
+		unsigned char *buf = (unsigned char *)offset;
+		for (size = EMMC_UBOOT_START; size < EMMC_UBOOT_END;
+				       size = size + EMMC_BLOCK_SIZE) {
+			if (mmc_read_block(dev,
+				       size/512, EMMC_BLOCK_SIZE/512, buf))
+				buf += EMMC_BLOCK_SIZE; /* advance buf ptr */
+			else
+				return -1;
+		}
+		ret = 0; /* success */
+	#endif
+	} else {
+		ret = -1;
+	#ifdef CFG_CMD_FAT
 	dev_desc = mmc_get_dev(dev);
 	fat_register_device(dev_desc, part);
 	size = file_fat_read("u-boot.bin", (unsigned char *)offset, 0);
 	if (size == -1)
 		return -1;
 
-	return 0;
+	return 0; /* success */
+	#endif
+	}
+	return ret;
 }
-#endif
+#endif /* CONFIG_MMC */
 
 extern int do_load_serial_bin(ulong offset, int baudrate);
 
@@ -141,7 +161,11 @@ void start_armboot (void)
 #endif
 		break;
 	case 0x05:
-		printf("Unsupported MMC slot!\n");
+		strcpy(boot_dev_name, "eMMC");
+		#if defined(CONFIG_MMC)
+		if (mmc_read_bootloader(1, -1) != 0)
+			goto error;
+		#endif
 		break;
 	case 0x06:
 		strcpy(boot_dev_name, "MMC/SD1");
