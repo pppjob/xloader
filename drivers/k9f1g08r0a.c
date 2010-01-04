@@ -55,16 +55,56 @@
 #define OOB_SIZE		64
 #define MAX_NUM_PAGES		64
 
-#define ECC_CHECK_ENABLE
-#define ECC_STEPS		3
+#ifdef NAND_HW_ROMCODE_ECC_LAYOUT
+#define __raw_ecc_readl(a)	(*(volatile unsigned int *)(a))
+#define __raw_ecc_writel(v, a)	(*(volatile unsigned int *)(a) = (v))
+/* Register definitions */
+#define GPMC_BASE_ADDR		OMAP34XX_GPMC_BASE
+
+#define ECCCLEAR		(0x1 << 8)
+#define ECCRESULTREG1		(0x1 << 0)
+#define ECCSIZE512BYTE		0xFF
+#define ECCSIZE1		(ECCSIZE512BYTE << 22)
+#define ECCSIZE0		(ECCSIZE512BYTE << 12)
+#define ECCSIZE0SEL		(0x000 << 0)
+
+#define ECC_BLOCK_SIZE		512
+#ifdef NAND_16BIT
+#define DEV_WIDTH		1
+static u_char ecc_pos[] = { 2, 3, 4, 5, 6, 7, 8, 9,
+	10, 11, 12, 13
+};
+#else
+#define DEV_WIDTH		0
+static u_char ecc_pos[] = { 1, 2, 3, 4, 5, 6, 7, 8,
+	9, 10, 11, 12
+};
+#endif
+
+#else
+#ifdef NAND_16BIT
+#define DEV_WIDTH		1
+#else
+#define DEV_WIDTH		0
+#endif
 
 #ifdef CFG_SW_ECC_512
 #define ECC_BLOCK_SIZE 512
-#define ECC_SIZE	12
 #else
 #define ECC_BLOCK_SIZE 256
-#define ECC_SIZE	24
 #endif
+/* JFFS2 large page layout for 3-byte ECC per 256 bytes ECC layout */
+/* This is the only SW ECC supported by u-boot. So to load u-boot
+ * this should be supported */
+static u_char ecc_pos[] = {40, 41, 42, 43, 44, 45, 46, 47,
+			   48, 49, 50, 51, 52, 53, 54, 55,
+			   56, 57, 58, 59, 60, 61, 62, 63};
+
+#endif
+
+#define ECC_SIZE	(sizeof(ecc_pos))
+#define ECC_STEPS	3
+#define ECC_CHECK_ENABLE
 
 /*******************************************************
  * Routine: delay
@@ -80,21 +120,7 @@ static inline void delay (unsigned long loops)
 static int nand_read_page(u_char *buf, ulong page_addr);
 static int nand_read_oob(u_char *buf, ulong page_addr);
 
-/* JFFS2 large page layout for 3-byte ECC per 256 bytes ECC layout */
-/* This is the only SW ECC supported by u-boot. So to load u-boot
- * this should be supported */
-static u_char ecc_pos[] =
-		{40, 41, 42, 43, 44, 45, 46, 47,
-		48, 49, 50, 51, 52, 53, 54, 55,
-		56, 57, 58, 59, 60, 61, 62, 63};
-
 static unsigned long chipsize = (256 << 20);
-
-#ifdef NAND_16BIT
-static int bus_width = 16;
-#else
-static int bus_width = 8;
-#endif
 
 /* NanD_Command: Send a flash command to the flash chip */
 static int NanD_Command(unsigned char command)
@@ -134,7 +160,7 @@ static int NanD_Address(unsigned int numbytes, unsigned long ofs)
 
 		u = (col >> 8) & 0x07;
 		if (numbytes == ADDR_OOB)
-			u = u | ((bus_width == 16) ? (1 << 2) : (1 << 3));
+			u = u | ((DEV_WIDTH == 1) ? (1 << 2) : (1 << 3));
 		WRITE_NAND_ADDRESS(u, NAND_ADDR);
 	}
 
@@ -206,12 +232,11 @@ int nand_read_block(unsigned char *buf, ulong block_addr)
 	int i, offset = 0;
 
 #ifdef ECC_CHECK_ENABLE
-	u16 oob_buf[OOB_SIZE >> 1];
+	u8 oob_buf[OOB_SIZE];
 
 	/* check bad block */
 	/* 0th word in spare area needs be 0xff */
-	if (nand_read_oob((u_char *)oob_buf, block_addr) ||
-		(oob_buf[0] & 0xff) != 0xff) {
+	if (nand_read_oob(oob_buf, block_addr) || (oob_buf[0] & 0xff) != 0xff) {
 		printf("Skipped bad block at 0x%x\n", block_addr);
 		return 1;	/* skip bad block */
 	}
@@ -226,24 +251,175 @@ int nand_read_block(unsigned char *buf, ulong block_addr)
 	return 0;
 }
 
-static int count = 0;
+#ifdef NAND_HW_ROMCODE_ECC_LAYOUT
+/*
+ * omap_hwecc_init - Initialize the Hardware ECC for NAND flash in
+ *  GPMC controller
+ *
+ */
+static void omap_hwecc_init(void)
+{
+	/*
+	 * Init ECC Control Register
+	 * Clear all ECC | Enable Reg1
+	 */
+	__raw_ecc_writel(ECCCLEAR | ECCRESULTREG1,
+				GPMC_BASE_ADDR + GPMC_ECC_CONTROL);
+	__raw_ecc_writel(ECCSIZE1 | ECCSIZE0 | ECCSIZE0SEL,
+				GPMC_BASE_ADDR + GPMC_ECC_SIZE_CONFIG);
+	__raw_ecc_writel(0x1 | (0 << 1) | (DEV_WIDTH << 7),
+				GPMC_BASE_ADDR + GPMC_ECC_CONFIG);
+}
+
+/*
+ * gen_true_ecc - This function will generate true ECC value, which
+ * can be used when correcting data read from NAND flash memory core
+ *
+ * @ecc_buf:	buffer to store ecc code
+ *
+ * @return:	re-formatted ECC value
+ */
+static uint32_t gen_true_ecc(uint8_t *ecc_buf)
+{
+	return ecc_buf[0] | (ecc_buf[1] << 16) | ((ecc_buf[2] & 0xF0) << 20) |
+		((ecc_buf[2] & 0x0F) << 8);
+}
+
+/*
+ *  omap_calculate_ecc - Generate non-inverted ECC bytes.
+ *
+ *  Using noninverted ECC can be considered ugly since writing a blank
+ *  page ie. padding will clear the ECC bytes. This is no problem as
+ *  long nobody is trying to write data on the seemingly unused page.
+ *  Reading an erased page will produce an ECC mismatch between
+ *  generated and read ECC bytes that has to be dealt with separately.
+ *  E.g. if page is 0xFF (fresh erased), and if HW ECC engine within GPMC
+ *  is used, the result of read will be 0x0 while the ECC offsets of the
+ *  spare area will be 0xFF which will result in an ECC mismatch.
+ *  @dat:	unused
+ *  @ecc_code:	ecc_code buffer
+ */
+static int omap_calculate_ecc(const uint8_t *dat, uint8_t *ecc_code)
+{
+	u_int32_t val;
+
+	/* Start Reading from HW ECC1_Result = 0x200 */
+	val = __raw_ecc_readl(GPMC_BASE_ADDR + GPMC_ECC1_RESULT);
+
+	ecc_code[0] = val & 0xFF;
+	ecc_code[1] = (val >> 16) & 0xFF;
+	ecc_code[2] = ((val >> 8) & 0x0F) | ((val >> 20) & 0xF0);
+
+	/*
+	 * Stop reading anymore ECC vals and clear old results
+	 * enable will be called if more reads are required
+	 */
+	__raw_ecc_writel(0x000, GPMC_BASE_ADDR + GPMC_ECC_CONFIG);
+
+	return 0;
+}
+
+static int hweight32(unsigned int val)
+{
+	u_char count = 0;
+	for ( ; val; count++)
+		val &= (val - 1);
+	return count;
+}
+
+/*
+ * omap_correct_data - Compares the ecc read from nand spare area with ECC
+ * registers values and corrects one bit error if it has occured
+ * Further details can be had from OMAP TRM and the following selected links:
+ * http://en.wikipedia.org/wiki/Hamming_code
+ * http://www.cs.utexas.edu/users/plaxton/c/337/05f/slides/ErrorCorrection-4.pdf
+ *
+ * @dat:		page data
+ * @read_ecc:		ecc read from nand flash
+ * @calc_ecc:		ecc read from ECC registers
+ *
+ * @return 0 if data is OK or corrected, else returns -1
+ */
+static int omap_correct_data(uint8_t *dat,
+			     uint8_t *read_ecc, uint8_t *calc_ecc)
+{
+	uint32_t orig_ecc, new_ecc, res, hm;
+	uint16_t parity_bits, byte;
+	uint8_t bit;
+
+	/* Regenerate the orginal ECC */
+	orig_ecc = gen_true_ecc(read_ecc);
+	new_ecc = gen_true_ecc(calc_ecc);
+	/* Get the XOR of real ecc */
+	res = orig_ecc ^ new_ecc;
+	if (res) {
+		/* Get the hamming width */
+		hm = hweight32(res);
+		/* Single bit errors can be corrected! */
+		if (hm == 12) {
+			/* Correctable data! */
+			parity_bits = res >> 16;
+			bit = (parity_bits & 0x7);
+			byte = (parity_bits >> 3) & 0x1FF;
+			/* Flip the bit to correct */
+			dat[byte] ^= (0x1 << bit);
+		} else if (hm == 1) {
+			printf("Error: Ecc is wrong\n");
+			/* ECC itself is corrupted */
+			return 2;
+		} else {
+			/*
+			 * hm distance != parity pairs OR one, could mean 2 bit
+			 * error OR potentially be on a blank page..
+			 * orig_ecc: contains spare area data from nand flash.
+			 * new_ecc: generated ecc while reading data area.
+			 * Note: if the ecc = 0, all data bits from which it was
+			 * generated are 0xFF.
+			 * The 3 byte(24 bits) ecc is generated per 512byte
+			 * chunk of a page. If orig_ecc(from spare area)
+			 * is 0xFF && new_ecc(computed now from data area)=0x0,
+			 * this means that data area is 0xFF and spare area is
+			 * 0xFF. A sure sign of a erased page!
+			 */
+			if ((orig_ecc == 0x0FFF0FFF) && (new_ecc == 0x00000000))
+				return 0;
+			printf("Error: Bad compare! failed\n");
+			/* detected 2 bit error */
+			return -1;
+		}
+	}
+	return 0;
+}
+
+#define NAND_ECC_INIT() omap_hwecc_init()
+#define NAND_ECC_CALC(data_buf, ecc_buf) omap_calculate_ecc(data_buf, ecc_buf)
+#define NAND_ECC_CORRECT(data_buf, ecc_gen, ecc_old)\
+	omap_correct_data(data_buf, ecc_gen, ecc_old)
+#else
+/* Software ECC APIs */
+#define NAND_ECC_INIT()
+#define NAND_ECC_CALC(data_buf, ecc_buf) nand_calculate_ecc(data_buf, ecc_buf)
+#define NAND_ECC_CORRECT(data_buf, ecc_gen, ecc_old)\
+	nand_correct_data(data_buf, ecc_gen, ecc_old)
+#endif /* NAND_HW_ROMCODE_ECC_LAYOUT */
 
 /* read a page with ECC */
 static int nand_read_page(u_char *buf, ulong page_addr)
 {
 #ifdef ECC_CHECK_ENABLE
 	u_char ecc_code[ECC_SIZE];
-	u_char ecc_calc[ECC_STEPS];
+	u_char ecc_calc[ECC_SIZE];
 	u_char oob_buf[OOB_SIZE];
 #endif
 	u16 val;
 	int cntr;
 	int len;
+	int count;
 
 #ifdef NAND_16BIT
-	u16 *p;
+	u16 *p = (u16 *) buf;
 #else
-	u_char *p;
+	u_char *p = (u_char *) buf;
 #endif
 
 	NAND_ENABLE_CE();
@@ -254,25 +430,25 @@ static int nand_read_page(u_char *buf, ulong page_addr)
 
 	/* A delay seems to be helping here. needs more investigation */
 	delay(10000);
-	len = (bus_width == 16) ? PAGE_SIZE >> 1 : PAGE_SIZE;
+	len = (DEV_WIDTH == 1) ? ECC_BLOCK_SIZE >> 1 : ECC_BLOCK_SIZE;
 
-#ifdef NAND_16BIT
-	p = (u16 *)buf;
-#else
-	p = buf;
-#endif
-	for (cntr = 0; cntr < len; cntr++) {
-		*p++ = READ_NAND(NAND_ADDR);
-		delay(10);
+	/* Read in chunks of data. */
+	for (count = 0; count < ECC_SIZE; count += ECC_STEPS) {
+		NAND_ECC_INIT();
+		for (cntr = 0; cntr < len; cntr++) {
+			*p++ = READ_NAND(NAND_ADDR);
+			delay(10);
+		}
+		NAND_ECC_CALC((p - ECC_BLOCK_SIZE), &ecc_calc[count]);
 	}
 
 #ifdef ECC_CHECK_ENABLE
 #ifdef NAND_16BIT
-	p = (u16 *)oob_buf;
+	p = (u16 *) oob_buf;
 #else
-	p = oob_buf;
+	p = (u_char *) oob_buf;
 #endif
-	len = (bus_width == 16) ? OOB_SIZE >> 1 : OOB_SIZE;
+	len = (DEV_WIDTH == 1) ? OOB_SIZE >> 1 : OOB_SIZE;
 	for (cntr = 0; cntr < len; cntr++) {
 		*p++ = READ_NAND(NAND_ADDR);
 		delay(10);
@@ -286,13 +462,12 @@ static int nand_read_page(u_char *buf, ulong page_addr)
 
 	for (count = 0, cntr = 0; cntr < PAGE_SIZE / ECC_BLOCK_SIZE;
 					cntr++, count += ECC_STEPS) {
-		nand_calculate_ecc(buf, &ecc_calc[0]);
-		if (nand_correct_data(buf, &ecc_code[count], &ecc_calc[0]) ==
-			-1) {
+		if (NAND_ECC_CORRECT(buf, &ecc_code[count], &ecc_calc[count])
+			== -1) {
 			printf("ECC Failed, page 0x%08x\n", page_addr);
 			for (val = 0; val < ECC_BLOCK_SIZE; val++)
 				printf("%x ", buf[val]);
-			printf("\n");
+			printf(" Hang!!!\n");
 			for (;;);
 			return 1;
 		}
@@ -311,11 +486,11 @@ static int nand_read_oob(u_char *buf, ulong page_addr)
 	int len;
 
 #ifdef NAND_16BIT
-	u16 *p = (u16 *)buf;
+	u16 *p = (u16 *) buf;
 #else
-	u_char *p = buf;
+	u_char *p = (u_char *) buf;
 #endif
-	len = (bus_width == 16) ? OOB_SIZE >> 1 : OOB_SIZE;
+	len = (DEV_WIDTH == 1) ? OOB_SIZE >> 1 : OOB_SIZE;
 
 	NAND_ENABLE_CE();	/* set pin low */
 	NanD_Command(NAND_CMD_READ0);
