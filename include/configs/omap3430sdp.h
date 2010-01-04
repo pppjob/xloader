@@ -129,6 +129,10 @@
 #define CFG_NAND_K9F1G08R0A    /* Samsung 8-bit 128MB chip large page NAND chip*/
 #define NAND_8BIT
 
+/* To use the 256/512 byte s/w ecc define CFG_SW_ECC_(256/512) */
+/* Use the 512 byte hw ecc in rom code layout */
+#define NAND_HW_ROMCODE_ECC_LAYOUT
+
 /* NAND is partitioned:
  * 0x00000000 - 0x0007FFFF  Booting Image
  * 0x00080000 - 0x000BFFFF  U-Boot Image
