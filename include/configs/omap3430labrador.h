@@ -70,8 +70,9 @@
 # define NAND_BASE_ADR           NAND_BASE  /* NAND flash */
 # define ONENAND_BASE            ONENAND_MAP  /* OneNand flash */
 
-/* Use the 512 byte ecc */
-#define CFG_SW_ECC_512
+/* To use the 256/512 byte s/w ecc define CFG_SW_ECC_(256/512) */
+/* Use the 512 byte hw ecc in rom code layout */
+#define NAND_HW_ROMCODE_ECC_LAYOUT
 
 #ifdef CFG_NAND
 #define OMAP34XX_GPMC_CS0_SIZE GPMC_SIZE_128M  /* u = ofdon't need so much for nand port */
