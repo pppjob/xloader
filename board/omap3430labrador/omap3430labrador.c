@@ -198,6 +198,9 @@ void config_3430sdram_ddr(void)
 		defined(CONFIG_3630ZOOM3) || defined(CONFIG_3630SDP)
 	/* 2 * 128M = 256M for cs1 */
 	__raw_writel(0x2, SDRC_CS_CFG);
+#elif defined(CONFIG_3630SDP_1G)
+	/* 4 * 128M = 512M for cs1 */
+	__raw_writel(0x4, SDRC_CS_CFG);
 #else
 	/* 1 * 128M = 128M for cs1 */
 	__raw_writel(0x1, SDRC_CS_CFG);

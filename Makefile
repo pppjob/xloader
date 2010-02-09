@@ -178,6 +178,11 @@ omap3630zoom3_config :    unconfig
 omap3630sdp_config :    unconfig
 	@./mkconfig $(@:_config=) arm omap3 omap3430labrador
 
+omap3630sdp_1G_config :    unconfig
+	@./mkconfig $(@:_config=) arm omap3 omap3430labrador
+	sed s/CONFIG_3630SDP/CONFIG_3630SDP_1G/ < \
+	./include/configs/omap3630sdp.h > ./include/config-2.h; \
+	mv ./include/config-2.h ./include/config.h
 #########################################################################
 
 clean:
