@@ -42,7 +42,13 @@
 //#define CONFIG_3430_AS_3410	 1    /* true for 3430 in 3410 mode */
 
 /* Enable the below macro if MMC boot support is required */
-//#define CONFIG_MMC               1
+/* if loadb and MMC support are enabled together, the size of x-loader
+   (code + data) becomes greater than 32K - the size of SRAM. So don't enable
+   them together.
+ */
+#if !defined(START_LOADB_DOWNLOAD)
+#define CONFIG_MMC               	 1
+#endif
 #if defined(CONFIG_MMC)
 	#define CFG_CMD_MMC              1
 	#define CFG_CMD_FAT              1
