@@ -163,7 +163,7 @@ void start_armboot (void)
 	case 0x05:
 		strcpy(boot_dev_name, "eMMC");
 		#if defined(CONFIG_MMC)
-		if (mmc_read_bootloader(1, 1) != 0)
+		if (mmc_read_bootloader(1, -1) != 0)
 			goto error;
 		#endif
 		break;
