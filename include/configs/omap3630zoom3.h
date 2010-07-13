@@ -144,11 +144,6 @@
 #define NAND_UBOOT_START         0x0080000 /* Leaving first 4 blocks for x-load */
 #define NAND_UBOOT_END           0x00C0000 /* Giving a space of 2 blocks = 256KB */
 #define NAND_BLOCK_SIZE          0x20000
-
-/* eMMC is Partition as in NAND */
-#define EMMC_UBOOT_START 0x0080000 /* Leaving first 4 blocks for x-load*/
-#define EMMC_UBOOT_END	 0x00C0000 /* Giving a space of 2 blocks=256KB */
-#define EMMC_BLOCK_SIZE	 0x20000
   
 #define GPMC_CONFIG              (OMAP34XX_GPMC_BASE+0x50)
 #define GPMC_NAND_COMMAND_0      (OMAP34XX_GPMC_BASE+0x7C)
@@ -226,7 +221,6 @@
 #if defined(CONFIG_MMC)
 	#define CFG_CMD_MMC	1
 	#define CFG_CMD_FAT	1
-	#define CFG_CMD_MMC_RAW	1
 #endif
 
 #endif /* __CONFIG_H */
