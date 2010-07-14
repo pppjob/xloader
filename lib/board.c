@@ -69,7 +69,7 @@ char * strcpy(char * dest,const char *src)
 }
 #endif
 
-#ifdef CFG_CMD_FAT
+#ifdef CONFIG_MMC
 int mmc_read_bootloader(int dev, int part)
 {
 	long size;
@@ -77,17 +77,22 @@ int mmc_read_bootloader(int dev, int part)
 	block_dev_desc_t *dev_desc = NULL;
 	unsigned char ret = 0;
 
-	ret = mmc_init(1);
+	ret = mmc_init(dev);
 	if (ret != 0){
 		printf("\n MMC init failed \n");
 		return -1;
 	}
 
-	dev_desc = mmc_get_dev(dev);
-	fat_register_device(dev_desc, part);
-	size = file_fat_read("u-boot.bin", (unsigned char *)offset, 0);
-	if (size == -1)
-		return -1;
+	if (part) {	/* FAT Read for extenal SD card */
+		dev_desc = mmc_get_dev(dev);
+		size = file_fat_read("u-boot.bin", (unsigned char *)offset, 0);
+		if (size == -1)
+			return -1;
+	} else {	/* RAW read for EMMC */
+		ret = mmc_read(dev, 0x400, (unsigned char *)offset, 0x60000);
+		if (ret != 1)
+			return -1;
+	}
 
 	return 0;
 }
@@ -114,6 +119,7 @@ void start_armboot (void)
 	strcpy(boot_dev_name, "UART");
 	do_load_serial_bin (CFG_LOADADDR, 115200);
 #else
+	/* Read boot device from saved scratch pad */
 	boot_device = __raw_readl(0x480029c0) & 0xff;
 	buf = (uchar*) CFG_LOADADDR;
 
@@ -141,13 +147,21 @@ void start_armboot (void)
 #endif
 		break;
 	case 0x05:
-		printf("Unsupported MMC slot!\n");
+		strcpy(boot_dev_name, "EMMC");
+#if defined(CONFIG_MMC)
+		if (mmc_read_bootloader(1, 0) != 0)
+			goto error;
+#else
+		goto error;
+#endif
 		break;
 	case 0x06:
 		strcpy(boot_dev_name, "MMC/SD1");
-#if defined(CONFIG_MMC)
+#if defined(CONFIG_MMC) && defined(CFG_CMD_FAT)
 		if (mmc_read_bootloader(0, 1) != 0)
 			goto error;
+#else
+		goto error;
 #endif
 		break;
 	};
