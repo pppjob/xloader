@@ -172,8 +172,13 @@ omap3430zoom2_512m_config :    unconfig
 	>> ./include/config-2.h; \
 	mv ./include/config-2.h ./include/config.h
 
-omap3630zoom3_config :    unconfig
+omap3630zoom3_config :    omap3630zoom3_1G_config
+
+omap3630zoom3_512m_config :    unconfig
 	@./mkconfig $(@:_config=) arm omap3 omap3430labrador
+	sed s/omap3630zoom3_512m/omap3630zoom3/ < \
+	./include/config.h > ./include/config-2.h; \
+	mv ./include/config-2.h ./include/config.h
 
 omap3630zoom3_1G_config :    unconfig
 	@./mkconfig $(@:_config=) arm omap3 omap3430labrador
