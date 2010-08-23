@@ -27,7 +27,7 @@ LIB	= libcommon.a
 
 AOBJS	=
 
-COBJS	= cmd_load.o
+COBJS	= cmd_load.o delay.o
 
 OBJS	= $(AOBJS) $(COBJS)
 

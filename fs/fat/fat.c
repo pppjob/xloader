@@ -52,7 +52,7 @@ static int cur_part = 1;
 #define DOS_PART_TBL_OFFSET	0x1be
 #define DOS_PART_MAGIC_OFFSET	0x1fe
 #define DOS_FS_TYPE_OFFSET	0x52
-
+#if 0
 int strncmp(const char * cs,const char * ct,size_t count)
 {
         register signed char __res = 0;
@@ -95,7 +95,7 @@ void * memcpy(void * dest,const void *src,size_t count)
 
         return dest;
 }
-
+#endif
 
 int disk_read (__u32 startblock, __u32 getsize, __u8 * bufptr)
 {

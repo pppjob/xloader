@@ -28,9 +28,12 @@ include $(TOPDIR)/config.mk
 LIB	= lib$(ARCH).a
 
 AOBJS	= _udivsi3.o _umodsi3.o
-
+#ifdef CONFIG_OMAP
 COBJS	= board.o ecc_256.o ecc_512.o printf.o div0.o
-
+#endif
+#ifdef CONFIG_ATXX
+COBJS   = board.o string.o printf.o div0.o
+#endif
 OBJS	= $(AOBJS) $(COBJS)
 
 $(LIB):	.depend $(OBJS)

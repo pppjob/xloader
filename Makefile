@@ -48,12 +48,12 @@ export	TOPDIR
 ifeq (include/config.mk,$(wildcard include/config.mk))
 # load ARCH, BOARD, and CPU configuration
 include include/config.mk
-export	ARCH CPU BOARD VENDOR
+export	ARCH CPU BOARD VENDOR SOC
 # load other configuration
 include $(TOPDIR)/config.mk
 
 ifndef CROSS_COMPILE
-CROSS_COMPILE = arm-none-linux-gnueabi-
+CROSS_COMPILE = arm-eabi-
 #CROSS_COMPILE = arm-linux-
 export	CROSS_COMPILE
 endif
@@ -63,7 +63,9 @@ endif
 
 OBJS  = cpu/$(CPU)/start.o
  
-
+ifdef SOC
+LIBS += cpu/$(CPU)/$(SOC)/lib$(SOC).a
+endif
 LIBS += board/$(BOARDDIR)/lib$(BOARD).a
 LIBS += cpu/$(CPU)/lib$(CPU).a
 LIBS += lib/lib$(ARCH).a
@@ -130,6 +132,14 @@ unconfig:
 #========================================================================
 # ARM
 #========================================================================
+#########################################################################
+## ATXX(ARM1176) Systems
+#########################################################################
+
+cayman20_config :    unconfig
+	@./mkconfig $(@:_config=)  arm atxx cayman20 augusta at6600;	\
+	touch ./include/config.h
+
 #########################################################################
 ## OMAP1 (ARM92xT) Systems
 #########################################################################
@@ -210,7 +220,7 @@ clobber:	clean
 	rm -f $(OBJS) *.bak tags TAGS
 	rm -fr *.*~
 	rm -f x-load x-load.map $(ALL) x-load.bin.ift signGP MLO
-	rm -f include/asm/proc include/asm/arch
+	rm -f include/asm/arch
 
 mrproper \
 distclean:	clobber unconfig

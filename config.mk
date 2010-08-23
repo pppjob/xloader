@@ -58,6 +58,9 @@ sinclude $(TOPDIR)/$(ARCH)_config.mk	# include architecture dependend rules
 endif
 ifdef	CPU
 sinclude $(TOPDIR)/cpu/$(CPU)/config.mk	# include  CPU	specific rules
+ifdef	SOC
+sinclude $(TOPDIR)/cpu/$(CPU)/$(SOC)/config.mk	# include architecture dependend rules
+endif
 endif
 ifdef	VENDOR
 BOARDDIR = $(VENDOR)/$(BOARD)

@@ -1,0 +1,1 @@
+../../../uboot/include/asm-generic/errno.h

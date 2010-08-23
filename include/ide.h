@@ -1,1 +1,1 @@
-../../u-boot/include/ide.h
+../../uboot/include/ide.h

@@ -1,1 +1,1 @@
-../../u-boot/include/mmc.h
+../../uboot/include/mmc.h

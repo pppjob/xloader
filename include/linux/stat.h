@@ -1,1 +1,1 @@
-../../../u-boot/include/linux/stat.h
+../../../uboot/include/linux/stat.h

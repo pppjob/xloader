@@ -34,6 +34,39 @@ typedef unsigned char		uchar;
 typedef volatile unsigned long	vu_long;
 typedef volatile unsigned short vu_short;
 typedef volatile unsigned char	vu_char;
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
+/**
+  * container_of - cast a member of a structure out to the containing structure
+  * @ptr:        the pointer to the member.
+  * @type:       the type of the container struct this is embedded in.
+  * @member:     the name of the member within the struct.
+  *
+  */
+ #define container_of(ptr, type, member) ({                      \
+         const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
+         (type *)( (char *)__mptr - offsetof(type,member) );})
+
+#define MAX_ERRNO       4095
+#define unlikely(x)	__builtin_expect(!!(x), 0)
+
+#define IS_ERR_VALUE(x) unlikely((x) >= (unsigned long)-MAX_ERRNO)
+
+static inline void *ERR_PTR(long error)
+{	      
+	     return (void *) error;
+}
+ 
+static inline long PTR_ERR(const void *ptr)
+{
+	     return (long) ptr;
+}
+   
+static inline long IS_ERR(const void *ptr)
+{
+	     return IS_ERR_VALUE((unsigned long)ptr); 
+} 
+
 
 #include <config.h>
 #include <linux/types.h>
@@ -62,9 +95,15 @@ int 	board_init (void);
 int 	nand_init (void);
 int     mmc_boot (void);
 void	board_hang (void);
- 
+uint32_t main_course(char *boot_dev_name);
+
 /* cpu/$(CPU)/cpu.c */
 int 	cpu_init (void);
+int timer_init (void);
+int do_load_serial_bin (ulong offset, int baudrate);
+
+void cleanup_before_boot(void);
+
 #ifdef  CFG_UDELAY
 void 	udelay (unsigned long usec);
 #endif

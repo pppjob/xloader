@@ -1,1 +1,1 @@
-../../../u-boot/include/linux/time.h
+../../../uboot/include/linux/time.h

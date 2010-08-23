@@ -1,1 +1,1 @@
-../../u-boot/include/fat.h
+../../uboot/include/fat.h

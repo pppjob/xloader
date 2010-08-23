@@ -19,7 +19,7 @@
  
 /* we use this so that we can do without the ctype library */
 #define is_digit(c)	((c) >= '0' && (c) <= '9')
-
+#if 0
 size_t strnlen(const char * s, size_t count)
 {
 	const char *sc;
@@ -28,7 +28,7 @@ size_t strnlen(const char * s, size_t count)
 		/* nothing */;
 	return sc - s;
 }
-
+#endif
 static int skip_atoi(const char **s)
 {
 	int i=0;

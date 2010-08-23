@@ -1,1 +1,1 @@
-../../u-boot/include/command.h
+../../uboot/include/command.h

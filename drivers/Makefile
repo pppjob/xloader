@@ -26,26 +26,30 @@ include $(TOPDIR)/config.mk
 # CFLAGS += -DET_DEBUG -DDEBUG
 
 LIB	= libdrivers.a
-OBJS	= serial.o ns16550.o onenand.o
+#OBJS	= 
+
+ifeq ($(CPU), atxx)
+OBJS 	+= serial_atxx.o
+endif
 
 ifeq ($(BOARD), omap3430sdp)
-OBJS 	+= k9f1g08r0a.o
+OBJS 	+= k9f1g08r0a.o serial-omap.o ns16550.o onenand.o
 endif
 
 ifeq ($(BOARD), omap3430labrador)
-OBJS 	+= k9f1g08r0a.o
+OBJS 	+= k9f1g08r0a.o serial-omap.o ns16550.o onenand.o
 endif
 
 ifeq ($(BOARD), omap2420h4) 
-OBJS 	+= k9k1216.o
+OBJS 	+= k9k1216.o serial-omap.o ns16550.o onenand.o
 endif
 
 ifeq ($(BOARD), omap2430sdp)
-OBJS    += k9k1216.o
+OBJS    += k9k1216.o serial-omap.o ns16550.o onenand.o
 endif
 
 ifeq ($(BOARD), omap1710h3)
-OBJS    += k9f5616.o
+OBJS    += k9f5616.o serial-omap.o ns16550.o onenand.o
 endif
 
 

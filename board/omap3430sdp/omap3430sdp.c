@@ -715,3 +715,68 @@ int nand_init(void)
 /* optionally do something like blinking LED */
 void board_hang (void)
 { while (0) {};}
+
+uint32_t main_course(char *boot_dev_name)
+{
+	int i;
+	uchar *buf;
+	u32 boot_device = 0;
+
+#ifdef START_LOADB_DOWNLOAD
+	strcpy(boot_dev_name, "UART");
+	do_load_serial_bin (CFG_LOADADDR, CONFIG_BAUDRATE);
+#else
+
+	/* Read boot device from saved scratch pad */
+	boot_device = __raw_readl(0x480029c0) & 0xff;
+	buf = (uchar*) CFG_LOADADDR;
+
+	switch(boot_device) {
+	case 0x03:
+		strcpy(boot_dev_name, "ONENAND");
+#if defined(CFG_ONENAND)
+		for (i = ONENAND_START_BLOCK; i < ONENAND_END_BLOCK; i++) {
+			if (!onenand_read_block(buf, i))
+				buf += ONENAND_BLOCK_SIZE;
+			else
+				goto error;
+		}
+#endif
+		break;
+	case 0x02:
+	default:
+		strcpy(boot_dev_name, "NAND");
+#if defined(CFG_NAND)
+		for (i = NAND_UBOOT_START; i < NAND_UBOOT_END;
+				i+= NAND_BLOCK_SIZE) {
+			if (!nand_read_block(buf, i))
+				buf += NAND_BLOCK_SIZE; /* advance buf ptr */
+		}
+#endif
+		break;
+	case 0x05:
+		strcpy(boot_dev_name, "EMMC");
+#if defined(CONFIG_MMC)
+		if (mmc_read_bootloader(1, 0) != 0)
+			goto error;
+#else
+		goto error;
+#endif
+		break;
+	case 0x06:
+		strcpy(boot_dev_name, "MMC/SD1");
+#if defined(CONFIG_MMC) && defined(CFG_CMD_FAT)
+		if (mmc_read_bootloader(0, 1) != 0)
+			goto error;
+#else
+		goto error;
+#endif
+		break;
+	};
+	return CFG_LOADADDR;
+#if defined(CFG_ONENAND) || defined(CONFIG_MMC)
+error:
+#endif
+        printf("Could not read bootloader!\n");
+        hang();
+}
