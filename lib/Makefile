@@ -32,7 +32,7 @@ AOBJS	= _udivsi3.o _umodsi3.o
 COBJS	= board.o ecc_256.o ecc_512.o printf.o div0.o
 #endif
 #ifdef CONFIG_ATXX
-COBJS   = board.o string.o printf.o div0.o
+COBJS   = board.o string.o printf.o div0.o vsprintf.o ctype.o
 #endif
 OBJS	= $(AOBJS) $(COBJS)
 

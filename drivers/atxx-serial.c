@@ -23,7 +23,7 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include "serial_atxx.h"
+#include "atxx-serial.h"
 #include <asm/arch-atxx/regs_base.h>
 
 

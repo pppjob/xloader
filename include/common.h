@@ -67,6 +67,7 @@ static inline long IS_ERR(const void *ptr)
 	     return IS_ERR_VALUE((unsigned long)ptr); 
 } 
 
+#define min(x,y) ((x)<(y)?(x):(y))
 
 #include <config.h>
 #include <linux/types.h>
@@ -103,6 +104,7 @@ int timer_init (void);
 int do_load_serial_bin (ulong offset, int baudrate);
 
 void cleanup_before_boot(void);
+void  flush_cache (unsigned long dummy1, unsigned long dummy2);
 
 #ifdef  CFG_UDELAY
 void 	udelay (unsigned long usec);

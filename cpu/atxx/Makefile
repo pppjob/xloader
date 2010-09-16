@@ -29,7 +29,10 @@ include $(TOPDIR)/config.mk
 LIB	= lib$(CPU).a
 
 START	:= start.o
-OBJS	:= clock_common.o cpu.o
+OBJS	:= clock_common.o cpu.o parse_bootparam.o
+#ifdef CMD_FACTORY
+OBJS += factory.o
+#endif
 
 
 all:	.depend $(START) $(LIB)

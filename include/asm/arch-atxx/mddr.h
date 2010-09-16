@@ -28,8 +28,10 @@ enum mddr_size {
 	MDDR_128,
 	MDDR_256,
 	MDDR_512,
+	MDDR_INVALIDATE,
 };
 extern void mddr_self_refresh(void);
-extern void mddr_init(void);
+void mddr_init(struct boot_parameter *);
+void mddr_calibration(uint8_t*);
 
 #endif /* __ASM_ARCH_MDDR_H */

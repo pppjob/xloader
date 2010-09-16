@@ -33,18 +33,32 @@
 #define	CONFIG_SYS_UBOOT_BASE		0x40400400
 #define	CONFIG_SYS_PHY_UBOOT_BASE	0x40400400
 
-#define CONFIG_ENV_SIZE			8192	/* 8KB */
+/* Envioment */
+#define CONFIG_ENV_SIZE			512	/*512 byte only*/
+#define CONFIG_ENV_OFFSET		0x100000
+#define CONFIG_ENV_RANGE		0x100000
 
-/* reserved for malloc */
-#define CONFIG_SYS_MALLOC_LEN		\
-	(CONFIG_ENV_SIZE + 24*1024)
-/* reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_SIZE	(128)
+/* Factory data */
+#define FACTORY_DATA_BASE_OFFSET	0x1000000
+#define FACTORY_DATA_MAX		0x1400000
+
+#define	MAGIC_STRING			"ATXXFACTORYDATA"
+#define	MAGIC_LENGTH			16
+
+/* printf buffer size */
 #define CFG_PBSIZE			256
 
-
 #define MDDR_BASE_ADDR			0x88000000
+/* data send from x-loader to u-boot address*/
+#define CONFIG_CAL_SIZE			(8)
+
+/* magic string for boot parameter */
+#define	BOOT_MAGIC_STRING		"ATXXBOOTPARA"
+#define	BOOT_MAGIC_LENGTH		16
+
+/*uboot boot and load address */
 #define CFG_LOADADDR			0x88008000
+#define CFG_RUNADDR			0x88008000
 
 /* Uart setting */
 #define CONFIG_XMODEM
@@ -55,5 +69,9 @@
 
 /* Skip malloc */
 #define __HAVE_ARCH_STRDUP
+
+/* Nand config */
+#define CFG_NAND
+#define CFG_UDELAY
 
 #endif /* __CONFIG_H */

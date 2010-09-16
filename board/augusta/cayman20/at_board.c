@@ -22,36 +22,76 @@
 
 #include <linux/types.h>
 #include <asm/arch-atxx/cache.h>
-#include <asm/arch-atxx/mddr.h>
 #include "map_table.c"
 #include "clock_table.c"
+#include <asm/arch-atxx/clock.h>
+#include <environment.h>
+#include <factory.h>
+#include <nand.h>
+#include <asm/arch-atxx/bootparam.h>
+#include <asm/arch-atxx/mddr.h>
+#include <linux/string.h>
+
+struct boot_parameter b_param;
 
 int board_init(void)
 {
-
 	mmu_cache_on(memory_map);
 	at6600_clock_init();
 	set_board_default_clock(pll_setting, div_setting,
 		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
-	/* 
-	* FIXME: add mddr power down code, not allow 
-	* reinit without power down, when self-refresh
-	*/
-	mddr_init();
 	return 0;
 }
 
 uint32_t main_course(char *boot_dev_name)
 {
+	int ret;
+	struct boot_parameter *parameter = &b_param;
 
-	// key press
-	//load uboot from uart
+	/* read config data area for clock information */
+	ret = env_init();
+	/* enviroment exist, follow its setting */
+	if(!ret){
+		regulate_clock();
+	}
+	
+	mddr_init(parameter);
+
+	if (parameter->mddr_data_send) {
+		memcpy(parameter->magic, 
+			BOOT_MAGIC_STRING, BOOT_MAGIC_LENGTH);
+	} else {
+		memset(parameter, 0, sizeof(struct boot_parameter));
+	}
+#if 0
+	/* read uboot boot address in config data area */
+	if(envs.flags == 0)
+		goto done;
+	ret = get_boot_param();
+	if (ret) {
+		printf("Get boot parameter fail\n");
+		goto done;
+	}
+	/* nand read to mddr */
+	ret = nand_read_skip_bad(&nd, boot_info.nandoff, 
+		&boot_info.length, (u_char *)boot_info.laddr,
+		boot_info.nand_end);
+	if (ret) {
+		printf("Read uboot fail\n");
+		goto done;
+	}
+	
+	/* check security header, if fail goto done */
+	strcpy(boot_dev_name, "Nand");
+	return boot_info.raddr;
+done:
+#endif
+	/* load uboot from uart */
 	strcpy(boot_dev_name, "UART");
-	//add head analysis , if need
+	/* add head analysis , if need */
 	do_load_serial_bin(CFG_LOADADDR, CONFIG_BAUDRATE);
-	//key not press
-	//read uboot from nand
-	return (u32)CFG_LOADADDR;
+	/* check security header, if fail goto done */
+	return (u32)CFG_RUNADDR;
 }
 
 /* optionally do something like blinking LED */

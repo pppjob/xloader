@@ -24,8 +24,16 @@
 #include <asm/io.h>
 #include <config.h>
 #include <common.h>
+#include <factory.h>
 #include <asm/arch-atxx/io.h>
+#include <asm/arch-atxx/bootparam.h>
 #include <asm/arch-atxx/mddr.h>
+
+void mddr_calibration(uint8_t *buf)
+{
+	//receive cal_date[8]
+	return;
+}
 
 void mddr_core_init(uint32_t size)
 {
@@ -152,37 +160,34 @@ static uint32_t get_mddr_size(void)
 {
 	uint32_t size = 0;
 
-	/* 
-	* if saved mddr data are valid in env structure,
-	* get size from evionment 
-	*/
-	if (0) {
-			//size = env_get_mddr_size();
-			if (size) {
-				goto done;
-			}
-		}
 	mddr_core_init(MDDR_256);
 	size = cal_get_mddr_size();
-	if (size) {
-		/* set calibration enable bit to env structure */
-		/* save to env structure , and set modify bit */
-		goto done;
-	}
-
-done:
 	return size;
 
 }
 
-void mddr_init(void)
+void mddr_init(struct boot_parameter *b_param)
 {
-	uint32_t mddr_size;
-	
-	mddr_size = get_mddr_size();
-	mddr_core_init(mddr_size);
-	/* do mddr calibration */
-	/* calibration algorithm should be rewrite using dichotomy */
+	factory_data_t * f_data;
+	mddr_f_data_t * f_mddr;
+	size_t size;
+
+	f_data = factory_data_get(FD_MDDR);
+	if (f_data) {
+		printf("FD_MDDR exist\n");
+		b_param->mddr_data_send = 0;
+		*f_mddr = *(mddr_f_data_t *)f_data->fd_buf;
+		size = f_mddr->mddr_size;
+		
+	}else {
+		printf("FD_MDDR not exist\n");
+		b_param->mddr_data_send = 1;
+		size = get_mddr_size();		
+		b_param->f_mddr.mddr_size = size;
+	}
+	mddr_core_init(size);
+	if (b_param->mddr_data_send)
+		mddr_calibration(b_param->f_mddr.mddr_cal_data);
 	return;
 }
 

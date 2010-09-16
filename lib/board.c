@@ -32,6 +32,7 @@
 
 #include <common.h>
 #include <part.h>
+#include <asm/arch/bootparam.h>
 #include <asm/string.h>
 #ifdef CFG_CMD_FAT
 #include <fat.h>
@@ -49,6 +50,7 @@ int print_info(void)
 }
 #endif
 typedef int (init_fnc_t) (void);
+typedef int (boot_start) (uint32_t);
 
 init_fnc_t *init_sequence[] = {
 	cpu_init,		/* basic cpu dependent setup */
@@ -127,7 +129,7 @@ void start_armboot (void)
 	/* go run U-Boot and never return */
 	printf("Starting u-boot from %s ...\n", boot_dev_name);
 	cleanup_before_boot();
-	((init_fnc_t *)addr)();
+	((boot_start *)addr)((uint32_t)&b_param);
 
 	/* should never come here */
 	printf("should never come here\n");

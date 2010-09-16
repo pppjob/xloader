@@ -94,3 +94,10 @@ void arm1176_cache_flush(void)
 {
 	__flush_cache();
 }
+
+void  flush_cache (unsigned long dummy1, unsigned long dummy2)
+{
+	arm1176_cache_flush();
+	return;
+}
+

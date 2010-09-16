@@ -198,8 +198,10 @@ skip_hw_init:
 stack_setup:
 #ifdef CONFIG_UNCONTINUOUS_MEM
 	ldr	r0, =CONFIG_SYS_MALLOC_START		/* upper 128 KB: relocated uboot   */
+#ifdef CONFIG_MALLOC_EXIST
 	sub	r0, r0, #CONFIG_SYS_MALLOC_LEN	/* malloc area */
 	sub	r0, r0, #CONFIG_SYS_GBL_DATA_SIZE /* bdinfo */
+#endif
 #ifdef CONFIG_IRQ
 	sub	r0, r0, #CONFIG_STACKSIZE_IRQ /* stack irq */
 	sub	r0, r0, #CONFIG_STACKSIZE_FIQ /* stack fiq */
@@ -288,9 +290,11 @@ _mmu_table_base:
 #else
 	ldr	r2, _armboot_start
 #endif
+#ifdef CONFIG_MALLOC_EXIST
 	sub	r2, r2, #(CONFIG_SYS_MALLOC_LEN)
 	/* set base 2 words into abort stack */
 	sub	r2, r2, #(CONFIG_SYS_GBL_DATA_SIZE + 8)
+#endif
 	/* get values for "aborted" pc and cpsr (into parm regs) */
 	ldmia	r2, {r2 - r3}
 	/* grab pointer to old stack */
@@ -311,11 +315,12 @@ _mmu_table_base:
 #else
 	ldr	r13, _armboot_start
 #endif
+#ifdef CONFIG_MALLOC_EXIST
 	/* move past malloc pool */
 	sub	r13, r13, #(CONFIG_SYS_MALLOC_LEN)
 	/* move to reserved a couple spots for abort stack */
 	sub	r13, r13, #(CONFIG_SYS_GBL_DATA_SIZE + 8)
-
+#endif
 	/* save caller lr in position 0 of saved stack */
 	str	lr, [r13]
 	/* get the spsr */
@@ -341,10 +346,12 @@ _mmu_table_base:
 	str	r0, [r13]
 	/* get data regions start */
 	ldr	r0, _armboot_start
+#ifdef CONFIG_MALLOC_EXIST
 	/* move past malloc pool */
 	sub	r0, r0, #(CONFIG_SYS_MALLOC_LEN)
 	/* move past gbl and a couple spots for abort stack */
 	sub	r0, r0, #(CONFIG_SYS_GBL_DATA_SIZE + 8)
+#endif
 	/* save caller lr in position 0 of saved stack */
 	str	lr, [r0]
 	/* get the spsr */

@@ -22,12 +22,25 @@
 #include <linux/types.h>
 #include <linux/list.h>
 #include <linux/err.h>
+#include <linux/string.h>
 #include <common.h>
 #include <asm/arch-atxx/clock.h>
 #include <asm/arch-atxx/bug.h>
 /* ATXX clock API implementation */
 
 static LIST_HEAD(clocks);
+
+int clk_change_rate(unsigned long clkv, const char *id)
+{
+	unsigned long  old_clkv;
+	struct clk *clk;
+
+	clk = clk_get(id);
+	old_clkv = clk_get_rate(clk);
+	if(old_clkv != clkv)
+		return clk_set_rate(clk, clkv);
+	return 0;
+}
 
 void dump_clock(void)
 {

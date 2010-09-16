@@ -25,6 +25,8 @@
 #include <asm/arch-atxx/clock.h>
 #include <asm/arch-atxx/topctl.h>
 #include <asm/arch-atxx/regs_base.h>
+#include <environment.h>
+#include <linux/vsprintf.h>
 
 const char *pll_names[] = {
 	"pll1",
@@ -472,6 +474,87 @@ void set_board_default_clock(struct clock_default_setting *pll,
 			
 		}
 	}
+}
+
+void regulate_clock(void)
+{
+	int ret;
+	const char *s;
+	unsigned long clkv = 0;
+
+	if ((s = getenv ("clk-arm")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_change_rate(clkv * MHZ, "arm");
+		if (ret < 0){
+			printf("set arm clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = getenv ("clk-arc")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_change_rate(clkv * MHZ, "arc");
+		if (ret < 0){
+			printf("set arc clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = getenv ("clk-dspcore")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_change_rate(clkv * MHZ, "dspcore");
+		if (ret < 0){
+			printf("set dspcore clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = getenv ("clk-axi")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_change_rate(clkv * MHZ, "axi");
+		if (ret < 0){
+			printf("set axi clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = getenv ("clk-mddr")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_change_rate(clkv * MHZ, "mddr");
+		if (ret < 0){
+			printf("set mddr clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = getenv ("clk-ge")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_change_rate(clkv * MHZ, "ge");
+		if (ret < 0){
+			printf("set ge clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = getenv ("clk-vs")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_change_rate(clkv * MHZ, "vs");
+		if (ret < 0){
+			printf("set vs clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = getenv ("clk-vp")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_change_rate(clkv * MHZ, "vp");
+		if (ret < 0){
+			printf("set vp clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = getenv ("clk-app")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_change_rate(clkv * MHZ, "app");
+		if (ret < 0){
+			printf("set app clk fail %d\n", ret);
+		}
+	}
+
+	return;
 }
 
 void at6600_clock_init(void)

@@ -28,7 +28,9 @@ LIB	= libcommon.a
 AOBJS	=
 
 COBJS	= cmd_load.o delay.o
-
+#ifdef CMD_ENV_NAND
+COBJS += env_nand.o crc32.o
+#endif
 OBJS	= $(AOBJS) $(COBJS)
 
 CPPFLAGS += -I..
