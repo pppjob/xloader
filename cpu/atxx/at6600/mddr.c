@@ -28,6 +28,7 @@
 #include <asm/arch-atxx/io.h>
 #include <asm/arch-atxx/bootparam.h>
 #include <asm/arch-atxx/mddr.h>
+#include <asm/arch-atxx/delay.h>
 
 void mddr_calibration(uint8_t *buf)
 {
@@ -176,7 +177,7 @@ void mddr_init(struct boot_parameter *b_param)
 	if (f_data) {
 		printf("FD_MDDR exist\n");
 		b_param->mddr_data_send = 0;
-		*f_mddr = *(mddr_f_data_t *)f_data->fd_buf;
+		f_mddr = (mddr_f_data_t *)f_data->fd_buf;
 		size = f_mddr->mddr_size;
 		
 	}else {

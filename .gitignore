@@ -23,9 +23,9 @@
 #
 x-load
 x-load.*
+!x-load.lds
 System.map
 include/asm/arch
-include/asm/proc
 include/config.h
 include/config.mk
 !.gitignore
