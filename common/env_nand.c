@@ -24,27 +24,22 @@
 #include <common.h>
 #include <nand.h>
 #include <environment.h>
-#include <crc32.h>
+#include <crc.h>
 
 env_t envs;
 
 int readenv (size_t offset, u_char * buf)
 {
 	size_t end = offset + CONFIG_ENV_RANGE;
-	size_t amount_loaded = 0;
 	size_t blocksize, len;
 	u_char *char_ptr;
 
 	blocksize = nd.erasesize;
-	len = min(blocksize, CONFIG_ENV_OFFSET);
+	len = min(blocksize, CONFIG_ENV_SIZE);
 
-	char_ptr = &buf[amount_loaded];
-	if (nand_read_skip_bad(&nd, offset, &len, char_ptr, end))
-		return 1;
-	amount_loaded += len;
-
-	if (amount_loaded != CONFIG_ENV_OFFSET)
-		return 1;
+	char_ptr = buf;
+	if (nand_read_skip_bad(&nd, offset, len, char_ptr, end))
+		return -1;
 
 	return 0;
 }
@@ -124,10 +119,21 @@ int env_init(void)
 		goto done;
 	}
 	crc1_ok = (crc32(0, envs.data, ENV_SIZE) == envs.crc);
+#ifdef DEBUGENV
+	{
+		int i;
+		printf("envs.crc =%x %x\n", envs.crc, crc32(0, envs.data, ENV_SIZE));
+		for (i = 0; i < ENV_SIZE; i++)
+			printf("%c", envs.data[i]);
+		
+	}
+#endif
 	if(crc1_ok)		
 		envs.flags = 1;
-	else
+	else {
+		printf("Env crc check fail\n");
 		goto done;
+	}
 	return 0;
 done:
 	envs.flags = 0;

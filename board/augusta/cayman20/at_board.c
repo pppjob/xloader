@@ -47,6 +47,7 @@ uint32_t main_course(char *boot_dev_name)
 {
 	int ret;
 	struct boot_parameter *parameter = &b_param;
+	boot_info_t *info = &boot_info;
 
 	/* read config data area for clock information */
 	ret = env_init();
@@ -63,7 +64,6 @@ uint32_t main_course(char *boot_dev_name)
 	} else {
 		memset(parameter, 0, sizeof(struct boot_parameter));
 	}
-#if 0
 	/* read uboot boot address in config data area */
 	if(envs.flags == 0)
 		goto done;
@@ -73,25 +73,37 @@ uint32_t main_course(char *boot_dev_name)
 		goto done;
 	}
 	/* nand read to mddr */
-	ret = nand_read_skip_bad(&nd, boot_info.nandoff, 
-		&boot_info.length, (u_char *)boot_info.laddr,
-		boot_info.nand_end);
+	ret = nand_read_skip_bad(&nd, info->nand_offset, 
+		info->firm_size, 
+		(u_char *)info->load_address,
+		info->nand_end);
 	if (ret) {
 		printf("Read uboot fail\n");
 		goto done;
 	}
-	
-	/* check security header, if fail goto done */
+	ret = parse_header(info->load_address, 0);
+	if (ret) {
+		printf("Parse header fail\n");
+		goto done;		
+	}
 	strcpy(boot_dev_name, "Nand");
-	return boot_info.raddr;
+	return info->run_address;
 done:
-#endif
 	/* load uboot from uart */
 	strcpy(boot_dev_name, "UART");
 	/* add head analysis , if need */
 	do_load_serial_bin(CFG_LOADADDR, CONFIG_BAUDRATE);
-	/* check security header, if fail goto done */
-	return (u32)CFG_RUNADDR;
+	ret = parse_header(CFG_LOADADDR, 1);
+	if (ret) {
+		printf("Parse header fail\n");
+		goto done;		
+	}
+	if (info->load_address != CFG_LOADADDR) {
+		memcpy((void *)info->run_address, 
+			(char *)CFG_LOADADDR + sizeof(atxx_image_header_t),
+			info->firm_size);
+	}
+	return (u32)info->run_address;
 }
 
 /* optionally do something like blinking LED */

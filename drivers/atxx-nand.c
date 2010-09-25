@@ -1235,24 +1235,22 @@ static int nand_block_isbad(struct nand_info *nd, size_t offs)
  * @param offset offset in flash
  * @return image length including bad blocks
  */
-static size_t find_first_block (struct nand_info *nd, size_t offset)
+static int find_first_block (struct nand_info *nd, size_t *offset)
 {
-	size_t block_len;
 
 	do {
-		block_len = nd->erasesize - (offset & (nd->erasesize - 1));
-		if (nand_block_isbad (nd, offset & ~(nd->erasesize - 1))){
-			offset += block_len;		
+		if (nand_block_isbad (nd, *offset & ~(nd->erasesize - 1))){
+			*offset += nd->erasesize;
 		}else
 			break;
 
-		if (offset >= nd->size) {
+		if (*offset >= nd->size) {
 			printf("Not available nand space\n");
 			return -ENOSPC ;
 		}
 	} while(1);
 	
-	return offset;
+	return 0;
 }
 
 /**
@@ -1269,21 +1267,20 @@ static size_t find_first_block (struct nand_info *nd, size_t offset)
  * @param buffer buffer to write to
  * @return 0 in case of success
  */
-int nand_read_skip_bad(struct nand_info *nd, size_t offset, size_t *length,
+int nand_read_skip_bad(struct nand_info *nd, size_t offset, size_t length,
 		       u_char *buffer, size_t end)
 {
 	int rval;
-	size_t left_to_read = *length;
+	size_t left_to_read = length;
 	size_t addr = offset, page_addr, align, step;
 	u_char *p_buffer = buffer;
 
 	do {
-		rval = find_first_block(nd, addr);
+		rval = find_first_block(nd, &addr);
 		if (rval < 0) {
 			printf("Nand get offset fail\n");
 			goto err;
 		}
-		addr = rval;
 		if (addr >= end) {
 			printf("Too much bad block, out %x\n", end);
 			goto err;
@@ -1329,7 +1326,6 @@ int nand_read_skip_bad(struct nand_info *nd, size_t offset, size_t *length,
 err:
 	printf ("NAND read from offset %x failed %d\n",
 		offset, rval);
-	length = 0;
 	return rval;
 
 }

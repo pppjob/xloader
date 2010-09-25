@@ -44,7 +44,7 @@ factory_data_t *factory_data_get(int fd_index)
 	length = sizeof(struct factory_data_page);
 	
 	/* read out the data */	
-	ret = nand_read_skip_bad(&nd, offset, &length, (u_char *)&f_page, FACTORY_DATA_MAX);
+	ret = nand_read_skip_bad(&nd, offset, length, (u_char *)&f_page, FACTORY_DATA_MAX);
 	if (ret) {
 		printf("factory_data_get nand read fail\n");
 		return 0;

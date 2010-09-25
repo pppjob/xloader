@@ -34,9 +34,10 @@
 #define	CONFIG_SYS_PHY_UBOOT_BASE	0x40400400
 
 /* Envioment */
-#define CONFIG_ENV_SIZE			512	/*512 byte only*/
+/* Fixme :reduce size , not use crc check */
+#define CONFIG_ENV_SIZE			4096	/*4096 byte only*/
 #define CONFIG_ENV_OFFSET		0x100000
-#define CONFIG_ENV_RANGE		0x100000
+#define CONFIG_ENV_RANGE		0x200000
 
 /* Factory data */
 #define FACTORY_DATA_BASE_OFFSET	0x1000000
@@ -56,9 +57,11 @@
 #define	BOOT_MAGIC_STRING		"ATXXBOOTPARA"
 #define	BOOT_MAGIC_LENGTH		16
 
-/*uboot boot and load address */
-#define CFG_LOADADDR			0x88008000
-#define CFG_RUNADDR			0x88008000
+/*uboot xmodem load address */
+#define CFG_LOADADDR			0x88800000
+#define CFG_FIRMWARE_SIZE		(300 *1024)
+#define CFG_FIRMWARE_RAGE		(0x100000)
+
 
 /* Uart setting */
 #define CONFIG_XMODEM

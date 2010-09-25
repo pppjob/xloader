@@ -140,7 +140,7 @@ extern struct nand_flash_dev nand_flash_ids[];
 extern struct nand_manufacturers nand_manuf_ids[];
 
 extern struct nand_info nd;
-int nand_read_skip_bad(struct nand_info *nd, size_t offset, size_t *length,
+int nand_read_skip_bad(struct nand_info *nd, size_t offset, size_t length,
 		       u_char *buffer, size_t end);
 
 #endif /* __LINUX_MTD_NAND_H */

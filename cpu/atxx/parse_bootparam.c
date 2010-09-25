@@ -19,39 +19,71 @@
 * without the prior written permission of the copyright owner.
 *
 ------------------------------------------------------------------------------*/
-
+#include <common.h>
 #include <linux/types.h>
 #include <config.h>
 #include <factory.h>
 #include <asm/arch-atxx/bootparam.h>
+#include <environment.h>
+#include <linux/vsprintf.h>
+#include <asm/errno.h>
 
 
-struct boot_info boot_info;
+boot_info_t boot_info;
 
-// wait header program by GP
 int get_boot_param(void)
 {
-#if 0
 	const char *s;
-	
+	boot_info_t *info = &boot_info;
+
 	/* uboot laddr 0x */
 	if ((s = getenv ("uboot-laddr")) != NULL) {
-			clkv = simple_strtoul (s, NULL, 16);
-		}
-	/* uboot raddr 0x */
-	if ((s = getenv ("uboot-raddr")) != NULL) {
-			clkv = simple_strtoul (s, NULL, 16);
-		}
+		info->load_address = simple_strtoul (s, NULL, 16);
+	}else
+		return -EINVAL;
 	/* uboot nand offset 0x */
 	if ((s = getenv ("uboot-nandoff")) != NULL) {
-			nandoff = simple_strtoul (s, NULL, 16);
-		}
-#endif
-	boot_info.length = (300 *1024); /*300k uboot size*/
-	boot_info.laddr = CFG_LOADADDR;
-	boot_info.raddr = CFG_LOADADDR;
-	boot_info.nandoff = 0x5000;
-	boot_info.nand_end = 0x200000;
+		info->nand_offset = simple_strtoul (s, NULL, 16);
+	}else
+		return -EINVAL;
+	info->firm_size = CFG_FIRMWARE_SIZE; /*300k uboot size*/
+	info->nand_end = CFG_FIRMWARE_RAGE;
 	return 0;
 }
 
+int parse_header(uint32_t addr, int ignore)
+{
+	atxx_image_header_t * header;
+	boot_info_t *info = &boot_info;
+
+	header = (atxx_image_header_t *)addr;
+	if (header->boot_signature != HEAD_SIGNATURE) {
+		printf("Magic is not correct\n");
+		return -EINVAL;
+	}
+	/* if securiy verify fail, return negtive */
+	if (!ignore) {
+		if (header->load_address != info->load_address) {
+			printf("Env load_addr does not match header\n");
+			return -EINVAL;
+		}
+		if (header->nand_offset != info->nand_offset) {
+			printf("Env nand_offset does not match header\n");
+			return -EINVAL;
+		}
+		if (header->firm_size > info->firm_size) {
+			printf("Firm_size does not match header\n");
+			return -EINVAL;
+		}
+		if ((header->nand_offset + header->firm_size) 
+				> info->nand_end) {
+			printf("Nand_end does not match header\n");
+			return -EINVAL;
+		}
+	}
+	info->run_address = header->run_address;
+	info->load_address = header->load_address;
+	info->firm_size = header->firm_size;
+
+	return 0;	
+}

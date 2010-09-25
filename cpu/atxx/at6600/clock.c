@@ -476,6 +476,55 @@ void set_board_default_clock(struct clock_default_setting *pll,
 	}
 }
 
+/* FIXME : not test for can't run it on pm borad */
+static int clk_set_arm(unsigned long clkv)
+{
+	struct clk *clk;
+	struct clk *clkp;
+	unsigned long  old_clkv;
+	int ret;
+	
+	clk = clk_get("arm");
+	old_clkv = clk_get_rate(clk);
+	if(old_clkv == clkv)
+		return 0;
+	switch (clkv) {
+		case 312:
+		case 624:
+			ret = clk_set_rate(clk, clkv * MHZ);
+			break;
+		case 806:
+#if 0
+			clkp = clk_get("pll3");
+			ret = clk_set_rate(clkp, clkv * MHZ);
+			ret = clk_enable(clkp);
+			ret = clk_set_parent(clk, clkp);
+			ret = clk_set_rate(clk, clkv * MHZ);
+#endif
+			break;
+		default:
+			printf("Not support, arm clock only: 312M "
+				"624M 806M\n");
+			break;
+		}
+	return ret;
+}
+
+static int clk_set_axi(unsigned long clkv)
+{
+	return 0;
+}
+
+static int clk_set_mddr(unsigned long clkv)
+{
+	return 0;
+}
+
+static int clk_set_app(unsigned long clkv)
+{
+	return 0;
+}
+
 void regulate_clock(void)
 {
 	int ret;
@@ -484,31 +533,15 @@ void regulate_clock(void)
 
 	if ((s = getenv ("clk-arm")) != NULL) {
 		clkv = simple_strtoul (s, NULL, 0);
-		ret = clk_change_rate(clkv * MHZ, "arm");
+		ret = clk_set_arm(clkv);
 		if (ret < 0){
 			printf("set arm clk fail %d\n", ret);
 		}
 	}
 
-	if ((s = getenv ("clk-arc")) != NULL) {
-		clkv = simple_strtoul (s, NULL, 0);
-		ret = clk_change_rate(clkv * MHZ, "arc");
-		if (ret < 0){
-			printf("set arc clk fail %d\n", ret);
-		}
-	}
-
-	if ((s = getenv ("clk-dspcore")) != NULL) {
-		clkv = simple_strtoul (s, NULL, 0);
-		ret = clk_change_rate(clkv * MHZ, "dspcore");
-		if (ret < 0){
-			printf("set dspcore clk fail %d\n", ret);
-		}
-	}
-
 	if ((s = getenv ("clk-axi")) != NULL) {
 		clkv = simple_strtoul (s, NULL, 0);
-		ret = clk_change_rate(clkv * MHZ, "axi");
+		ret = clk_set_axi(clkv);
 		if (ret < 0){
 			printf("set axi clk fail %d\n", ret);
 		}
@@ -516,43 +549,23 @@ void regulate_clock(void)
 
 	if ((s = getenv ("clk-mddr")) != NULL) {
 		clkv = simple_strtoul (s, NULL, 0);
-		ret = clk_change_rate(clkv * MHZ, "mddr");
+		ret = clk_set_mddr(clkv);
 		if (ret < 0){
 			printf("set mddr clk fail %d\n", ret);
 		}
 	}
 
-	if ((s = getenv ("clk-ge")) != NULL) {
-		clkv = simple_strtoul (s, NULL, 0);
-		ret = clk_change_rate(clkv * MHZ, "ge");
-		if (ret < 0){
-			printf("set ge clk fail %d\n", ret);
-		}
-	}
-
-	if ((s = getenv ("clk-vs")) != NULL) {
-		clkv = simple_strtoul (s, NULL, 0);
-		ret = clk_change_rate(clkv * MHZ, "vs");
-		if (ret < 0){
-			printf("set vs clk fail %d\n", ret);
-		}
-	}
-
-	if ((s = getenv ("clk-vp")) != NULL) {
-		clkv = simple_strtoul (s, NULL, 0);
-		ret = clk_change_rate(clkv * MHZ, "vp");
-		if (ret < 0){
-			printf("set vp clk fail %d\n", ret);
-		}
-	}
-
 	if ((s = getenv ("clk-app")) != NULL) {
 		clkv = simple_strtoul (s, NULL, 0);
-		ret = clk_change_rate(clkv * MHZ, "app");
+		ret = clk_set_app(clkv);
 		if (ret < 0){
 			printf("set app clk fail %d\n", ret);
 		}
 	}
+	printf("clk-arm %dM ", clk_get_rate(clk_get("arm"))/1000000);
+	printf("clk-axi %dM ", clk_get_rate(clk_get("axi"))/1000000);
+	printf("clk-mddr %dM ", clk_get_rate(clk_get("mddr"))/1000000);
+	printf("clk-app %dM \n", clk_get_rate(clk_get("app"))/1000000);
 
 	return;
 }

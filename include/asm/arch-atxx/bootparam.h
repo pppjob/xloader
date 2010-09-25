@@ -31,14 +31,46 @@ struct boot_parameter{
 };
 extern struct boot_parameter b_param;
 
-struct boot_info {
-	uint32_t laddr;
-	uint32_t raddr;
-	size_t length;
-	size_t nandoff;
+typedef struct {
+	uint32_t load_address;
+	uint32_t run_address;
+	size_t firm_size;
+	size_t nand_offset;
 	uint32_t nand_end;
-};
-extern struct boot_info boot_info;
+}boot_info_t;
+
+#define	IV_SIZE			16
+#define	CERT_SIZE		288
+#define	SIGE_SIZE		128
+
+#define HEAD_SIGNATURE		0xB0087006
+
+typedef struct {
+	unsigned char		iv[IV_SIZE];
+	unsigned int		boot_signature;
+	unsigned int		load_address;
+	unsigned int		run_address;
+	unsigned int		firm_size;
+	unsigned int		nand_offset;
+	unsigned int		image_type;	/* see below */
+	unsigned char		reserved[56];
+	unsigned char 		certificate[CERT_SIZE];
+	unsigned char 		signature[SIGE_SIZE];
+} atxx_image_header_t;
+
+#define IH_TYPE_INVALID         0       /* Invalid Image                */
+#define IH_TYPE_STANDALONE      1       /* Standalone Program           */
+#define IH_TYPE_KERNEL          2       /* OS Kernel Image              */
+#define IH_TYPE_RAMDISK         3       /* RAMDisk Image                */
+#define IH_TYPE_MULTI           4       /* Multi-File Image             */
+#define IH_TYPE_FIRMWARE        5       /* Firmware Image               */
+#define IH_TYPE_SCRIPT          6       /* Script file                  */
+#define IH_TYPE_FILESYSTEM      7       /* Filesystem Image (any type)  */
+#define IH_TYPE_FLATDT          8       /* Binary Flat Device Tree Blob */
+#define IH_TYPE_KWBIMAGE        9       /* Kirkwood Boot Image          */
+
+extern boot_info_t boot_info;
 int get_boot_param(void);
+int parse_header(uint32_t addr, int ignore);
 
 #endif /* _BOOTPARAM */

@@ -14,6 +14,7 @@
 
 #include <stdarg.h>
 #include <common.h>
+#include <asm/string.h>
 
 #ifdef CFG_PRINTF
  
