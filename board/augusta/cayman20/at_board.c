@@ -20,10 +20,9 @@
 *
 ------------------------------------------------------------------------------*/
 
+#include <common.h>
 #include <linux/types.h>
 #include <asm/arch-atxx/cache.h>
-#include "map_table.c"
-#include "clock_table.c"
 #include <asm/arch-atxx/clock.h>
 #include <environment.h>
 #include <factory.h>
@@ -31,6 +30,9 @@
 #include <asm/arch-atxx/bootparam.h>
 #include <asm/arch-atxx/mddr.h>
 #include <linux/string.h>
+
+#include "map_table.c"
+#include "clock_table.c"
 
 struct boot_parameter b_param;
 
