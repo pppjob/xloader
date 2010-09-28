@@ -30,7 +30,7 @@ enum mddr_size {
 	MDDR_512,
 	MDDR_INVALIDATE,
 };
-extern void mddr_self_refresh(void);
+
 void mddr_init(struct boot_parameter *);
 void mddr_calibration(uint8_t*);
 

@@ -21,15 +21,19 @@
 ------------------------------------------------------------------------------*/
 
 #include <common.h>
-#include <linux/types.h>
-#include <asm/arch-atxx/cache.h>
-#include <asm/arch-atxx/clock.h>
 #include <environment.h>
 #include <factory.h>
 #include <nand.h>
+
+#include <linux/types.h>
+#include <linux/string.h>
+#include <asm/io.h>
+
 #include <asm/arch-atxx/bootparam.h>
 #include <asm/arch-atxx/mddr.h>
-#include <linux/string.h>
+#include <asm/arch-atxx/cache.h>
+#include <asm/arch-atxx/clock.h>
+#include <asm/arch-atxx/regs_base.h>
 
 #include "map_table.c"
 #include "clock_table.c"
@@ -42,6 +46,11 @@ int board_init(void)
 	at6600_clock_init();
 	set_board_default_clock(pll_setting, div_setting,
 		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
+
+	/* set GPIO 63 output 1 */
+	writel(0x80000000, ATXX_GPIOB_BASE);
+	writel(0x80000000, ATXX_GPIOB_BASE + 4);
+
 	return 0;
 }
 

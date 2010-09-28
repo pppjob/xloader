@@ -167,6 +167,30 @@ static uint32_t get_mddr_size(void)
 
 }
 
+/* will not call it, it reduces mddr r/w speed, use for deepsleep mode */
+static void mddr_self_refresh(void)
+{
+	uint64_t val;
+
+	/*
+	* Enter low power mode. 40~44 bit: lowpower control;
+	* 32~36 bit: lowpower auto enable.
+	*/
+	writel(0x00ff, 0x3ffbe070);
+	writel(0xff00, 0x3ffbe074);
+
+	/*
+	* Memory Self-Refresh with Memory and Controller
+	* Clock Gating (Mode 5)
+	*/
+	val = readl(0x3ffbe044);
+	val |= 0x0101;
+	writel(val, 0x3ffbe044);
+
+	mdelay(1);
+	printf("enable Mddr self refresh mode\n");
+}
+
 void mddr_init(struct boot_parameter *b_param)
 {
 	factory_data_t * f_data;
@@ -189,29 +213,12 @@ void mddr_init(struct boot_parameter *b_param)
 	mddr_core_init(size);
 	if (b_param->mddr_data_send)
 		mddr_calibration(b_param->f_mddr.mddr_cal_data);
+
+	mddr_self_refresh();
+
+	/* disable & clear MME irqs */
+	write64(0x3fe00048, 0x120000000000ff00LL);
+
 	return;
-}
-
-/* will not call it, it reduces mddr r/w speed, use for deepsleep mode */
-void mddr_self_refresh(void)
-{
-	uint64_t val;
-
-	/*
-	* Enter low power mode. 40~44 bit: lowpower control;
-	* 32~36 bit: lowpower auto enable.
-	*/
-	write64(0x3ffbe070, 0xff);
-	write64(0x3ffbe074, 0xff00);
-	
-	/*
-	* Memory Self-Refresh with Memory and Controller
-	* Clock Gating (Mode 5)
-	*/
-	val = read64(0x3ffbe044);
-	val |= 0x5;
-	write64(0x3ffbe044, val);
-	mdelay(1);
-	printf("enable Mddr self refresh mode\n");
 }
 

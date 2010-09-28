@@ -23,24 +23,24 @@
 /* array order is same as struct div_name */
 struct clock_default_setting div_setting[] = {
 	{UNCHANGED, 1, 624 * MHZ},	/*"arm" */
-	{UNCHANGED, 1, 52 * MHZ},	/*"dsphclk" */
-	{UNCHANGED, 0, 52 * MHZ},	/*"comm TV " */
+	{UNCHANGED, 1, 312 * MHZ},	/*"dsphclk" */
+	{UNCHANGED, 1, 52 * MHZ},	/*"comm" TODO: dsp */
 	{UNCHANGED, 1, 57 * MHZ},	/*"uart" */
 	{UNCHANGED, 0, UNCHANGED},	/*"ms" memory stick*/
-	{UNCHANGED, 0, 52 * MHZ},	/*"camclk"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"camera"*/
-	{UNCHANGED, 0, 52 * MHZ},	/*"vpclk"*/
-	{UNCHANGED, 1, 104 * MHZ},	/*"dspcore"*/
-	{UNCHANGED, 1, 156 * MHZ},	/*"axi"*/
+	{PLL1,      0, 52 * MHZ},	/*"camclk"*/
+	{PLL1,      0, 26 * MHZ},	/*"camera"*/
+	{UNCHANGED, 1, 156 * MHZ},	/*"vpclk"*/
+	{UNCHANGED, 1, 312 * MHZ},	/*"dspcore"*/
+	{UNCHANGED, 1, 208 * MHZ},	/*"axi"*/
 	{UNCHANGED, 0, UNCHANGED},	/*"spi0"*/
 	{UNCHANGED, 0, UNCHANGED},	/*"spi1"*/
 	{UNCHANGED, 0, UNCHANGED},	/*"spi2"*/
 	{UNCHANGED, 1, UNCHANGED},	/*"sd"*/
 	{PLL1,      0, 48 * MHZ},	/*"usb1"*/
 	{PLL1,      0, 48 * MHZ},	/*"bt"*/
-	{UNCHANGED, 1, 52 * MHZ},	/*"proc arc"*/
-	{UNCHANGED, 1, 52 * MHZ},	/*"app"*/
-	{UNCHANGED, 1, 52 * MHZ},	/*"gclk" graphic mm_top */
+	{UNCHANGED, 1, 156 * MHZ},	/*"proc arc"*/
+	{UNCHANGED, 1, 104 * MHZ},	/*"app"*/
+	{UNCHANGED, 1, 156 * MHZ},	/*"gclk" graphic mm_top TODO */
 	{UNCHANGED, 1, UNCHANGED},	/*"pclk" apb clock */
 	{UNCHANGED, 1, 156 * MHZ},	/*"mddr"*/
 	{UNCHANGED, 0, UNCHANGED},	/*"gps2"*/
@@ -52,7 +52,7 @@ struct clock_default_setting div_setting[] = {
 	{UNCHANGED, 0, UNCHANGED},	/*"i2s1"*/
 	{UNCHANGED, 0, UNCHANGED},	/*"i2s2_s0"*/
 	{UNCHANGED, 0, UNCHANGED},	/*"i2s2"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"vsclk"*/
+	{PLL1,      1, 156 * MHZ},	/*"vsclk" TODO */
 	{UNCHANGED, 0, UNCHANGED},	/*"d_not_use0"*/
 	{PLL1,      0, 48 * MHZ},	/*"usb0"*/
 	{PLL1,      0, 26 * MHZ},	/*"iqadc_s0"*/
