@@ -39,15 +39,18 @@ int get_boot_param(void)
 	/* uboot laddr 0x */
 	if ((s = getenv ("uboot-laddr")) != NULL) {
 		info->load_address = simple_strtoul (s, NULL, 16);
-	}else
-		return -EINVAL;
+	} else
+		info->load_address = CFG_UBOOT_LADDR;
+
 	/* uboot nand offset 0x */
 	if ((s = getenv ("uboot-nandoff")) != NULL) {
 		info->nand_offset = simple_strtoul (s, NULL, 16);
-	}else
-		return -EINVAL;
-	info->firm_size = CFG_FIRMWARE_SIZE; /*300k uboot size*/
+	} else
+		info->nand_offset = CFG_UBOOT_OFFSET;
+
+	info->firm_size = CFG_FIRMWARE_SIZE; /* 512 uboot size*/
 	info->nand_end = CFG_FIRMWARE_RAGE;
+
 	return 0;
 }
 

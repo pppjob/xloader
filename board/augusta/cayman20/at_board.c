@@ -76,8 +76,6 @@ uint32_t main_course(char *boot_dev_name)
 		memset(parameter, 0, sizeof(struct boot_parameter));
 	}
 	/* read uboot boot address in config data area */
-	if(envs.flags == 0)
-		goto done;
 	ret = get_boot_param();
 	if (ret) {
 		printf("Get boot parameter fail\n");

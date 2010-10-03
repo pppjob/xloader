@@ -59,9 +59,13 @@
 
 /*uboot xmodem load address */
 #define CFG_LOADADDR			0x88800000
-#define CFG_FIRMWARE_SIZE		(300 *1024)
-#define CFG_FIRMWARE_RAGE		(0x100000)
 
+/* uboot load-addr and nand-offset */
+#define	CFG_UBOOT_LADDR			0x88007e00
+#define	CFG_UBOOT_OFFSET		0x00020000	/* 128K */
+
+#define CFG_FIRMWARE_SIZE		(512 *1024)
+#define CFG_FIRMWARE_RAGE		(0x100000)
 
 /* Uart setting */
 #define CONFIG_XMODEM
