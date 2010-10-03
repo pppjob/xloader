@@ -747,11 +747,13 @@ static struct nand_flash_dev * atxx_nd_get_flash_type(
 			struct nand_info *nd, int *maf_id)
 {
 	struct nand_flash_dev *type = NULL;
-	int i, dev_id, maf_idx, ext_id;
+	int i, dev_id, maf_idx, ext_id, ext_id_bak;
+
 
 	/* Select the device */
 	atxx_nd_select_chip(nd, 0);
 	atxx_nd_read_ids(maf_id, &dev_id, &ext_id);
+	ext_id_bak = ext_id;
 
 	/* Lookup the flash id */
 	for (i = 0; nand_flash_ids[i].name != NULL; i++) {
@@ -795,6 +797,16 @@ static struct nand_flash_dev * atxx_nd_get_flash_type(
 			break;
 	}
 
+	/* fix the nand ID identify for Hynix H27UAG8T2A */
+	if ((*maf_id == 0xad) && (dev_id == 0xd5) && (ext_id_bak == 0x25)) {
+		printf("nand fix.\n");
+		nd->erasesize = 512 * 1024;
+		nd->writesize = PAGE_SIZE_4K;
+		ecc_number = 11;
+		oob_size = 224;
+	}
+
+
 	if (nd->writesize == PAGE_SIZE_4K)
 		nd->oobsize = oob_size;
 
@@ -814,8 +826,9 @@ static struct nand_flash_dev * atxx_nd_get_flash_type(
 	nd->pagemask = (nd->chipsize >> nd->page_shift) - 1;
 
 	printf("NAND device: Manufacturer ID:"
-		   " 0x%02x, Chip ID: 0x%02x (%s %s %d)\n", *maf_id, dev_id,
-		   nand_manuf_ids[maf_idx].name, type->name, nd->writesize);
+		   " 0x%02x, Chip ID: 0x%02x (%s %s %d %d %d)\n", *maf_id, dev_id,
+		   nand_manuf_ids[maf_idx].name, type->name, nd->writesize, 
+		   nd->erasesize, nd->oobsize);
 
 	return type;
 }
@@ -893,18 +906,21 @@ int atxx_nd_scan(struct nand_info *nd, int maxchips)
 	switch (nd->writesize) {
 	case 4096:
 		reg_data = atxx_nd_read_reg(REG_NFC_PARA0);
+		reg_data &= ~(0xf << NFC_PARA0_PAGE_SIZE_SHIFT);
 		reg_data |= (2 << NFC_PARA0_PAGE_SIZE_SHIFT);
 		reg_data &= ~(1 << 16);
 		atxx_nd_write_reg(REG_NFC_PARA0, reg_data);
 		break;
 	case 2048:
 		reg_data = atxx_nd_read_reg(REG_NFC_PARA0);
+		reg_data &= ~(0xf << NFC_PARA0_PAGE_SIZE_SHIFT);
 		reg_data |= (0x01 << NFC_PARA0_PAGE_SIZE_SHIFT);
 		reg_data &= ~(1 << 16);
 		atxx_nd_write_reg(REG_NFC_PARA0, reg_data);
 		break;
 	case 512:
 		reg_data = atxx_nd_read_reg(REG_NFC_PARA0);
+		reg_data &= ~(0xf << NFC_PARA0_PAGE_SIZE_SHIFT);
 		reg_data |= (1 << 16);
 		reg_data &= ~0xF0;
 		atxx_nd_write_reg(REG_NFC_PARA0, reg_data);

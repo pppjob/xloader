@@ -36,7 +36,7 @@
 /* Envioment */
 /* Fixme :reduce size , not use crc check */
 #define CONFIG_ENV_SIZE			4096	/*4096 byte only*/
-#define CONFIG_ENV_OFFSET		0x100000
+#define CONFIG_ENV_OFFSET		0x400000
 #define CONFIG_ENV_RANGE		0x200000
 
 /* Factory data */
@@ -62,10 +62,10 @@
 
 /* uboot load-addr and nand-offset */
 #define	CFG_UBOOT_LADDR			0x88007e00
-#define	CFG_UBOOT_OFFSET		0x00020000	/* 128K */
+#define	CFG_UBOOT_OFFSET		0x00200000	/* 2M */
 
 #define CFG_FIRMWARE_SIZE		(512 *1024)
-#define CFG_FIRMWARE_RAGE		(0x100000)
+#define CFG_FIRMWARE_END		(0x400000)
 
 /* Uart setting */
 #define CONFIG_XMODEM

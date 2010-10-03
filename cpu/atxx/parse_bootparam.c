@@ -49,7 +49,7 @@ int get_boot_param(void)
 		info->nand_offset = CFG_UBOOT_OFFSET;
 
 	info->firm_size = CFG_FIRMWARE_SIZE; /* 512 uboot size*/
-	info->nand_end = CFG_FIRMWARE_RAGE;
+	info->nand_end = CFG_FIRMWARE_END;
 
 	return 0;
 }
