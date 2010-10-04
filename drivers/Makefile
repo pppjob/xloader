@@ -29,7 +29,7 @@ LIB	= libdrivers.a
 #OBJS	= 
 
 ifeq ($(CPU), atxx)
-OBJS 	+= atxx-serial.o atxx-nand.o nand_ids.o
+OBJS 	+= atxx_i2c.o atxx-serial.o atxx-nand.o nand_ids.o
 endif
 
 ifeq ($(BOARD), omap3430sdp)

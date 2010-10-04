@@ -38,6 +38,8 @@
 #include "map_table.c"
 #include "clock_table.c"
 
+#include "pcf50626_generic.h"
+
 struct boot_parameter b_param;
 
 int board_init(void)
@@ -47,10 +49,8 @@ int board_init(void)
 	set_board_default_clock(pll_setting, div_setting,
 		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
 
-	/* set GPIO 63 output 1 */
-	writel(0x80000000, ATXX_GPIOB_BASE);
-	writel(0x80000000, ATXX_GPIOB_BASE + 4);
-
+	i2c_pcf50626_init();
+	pcf50626_set_default_power_supply();
 	return 0;
 }
 

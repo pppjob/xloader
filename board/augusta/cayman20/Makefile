@@ -25,7 +25,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= lib$(BOARD).a
 
-OBJS	:= at_board.o
+OBJS	:= pcf50626_generic.o at_board.o
 #SOBJS	:=
 
 $(LIB):	$(OBJS) $(SOBJS)
