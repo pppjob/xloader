@@ -34,8 +34,8 @@
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/clock.h>
 #include <asm/arch-atxx/regs_base.h>
+#include <asm/arch-atxx/map_table.h>
 
-#include "map_table.c"
 #include "clock_table.c"
 
 #include "pcf50626_generic.h"
