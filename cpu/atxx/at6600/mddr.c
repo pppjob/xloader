@@ -33,6 +33,9 @@
 void mddr_calibration(uint8_t *buf)
 {
 	//receive cal_date[8]
+
+	printf("MDDR Calibration ...\n");
+
 	return;
 }
 
@@ -127,7 +130,7 @@ void mddr_core_init(uint32_t size)
 	if (size == MDDR_256) {
 		write64(0x3ffbe028, 0x0003020002000003ULL);
 	} else {
-	write64(0x3ffbe028, 0x0003020102000003ULL);
+		write64(0x3ffbe028, 0x0003020102000003ULL);
 	}
 
 	write64(0x3ffbe018, 0x0101010000010001ULL);
@@ -136,7 +139,7 @@ void mddr_core_init(uint32_t size)
 
 }
 
-#define MDDR_128M		    (128 * 1024 * 1024)
+#define MDDR_128M		(128 * 1024 * 1024)
 #define MDDR_TEST_DATA1		0x12345678
 #define MDDR_TEST_DATA2		0x55aa7068
 
@@ -188,7 +191,7 @@ static void mddr_self_refresh(void)
 	writel(val, 0x3ffbe044);
 
 	mdelay(1);
-	printf("enable Mddr self refresh mode\n");
+	printf("Enable MDDR self-refresh mode\n");
 }
 
 void mddr_init(struct boot_parameter *b_param)
@@ -199,18 +202,20 @@ void mddr_init(struct boot_parameter *b_param)
 
 	f_data = factory_data_get(FD_MDDR);
 	if (f_data) {
-		printf("FD_MDDR exist\n");
 		b_param->mddr_data_send = 0;
 		f_mddr = (mddr_f_data_t *)f_data->fd_buf;
 		size = f_mddr->mddr_size;
 		
 	}else {
-		printf("FD_MDDR not exist\n");
+		printf("MDDR factory data not found\n");
 		b_param->mddr_data_send = 1;
 		size = get_mddr_size();		
 		b_param->f_mddr.mddr_size = size;
 	}
+
+	printf("MDDR SIZE = %d MB\n", (1 << size) * 64);
 	mddr_core_init(size);
+
 	if (b_param->mddr_data_send)
 		mddr_calibration(b_param->f_mddr.mddr_cal_data);
 

@@ -168,7 +168,7 @@ static struct pll_set pll_table[] = {
 	}, {
 		624 * MHZ, (2 << PLL_BS) | (23 << PLL_F),
 	}, {
-		708 * MHZ, (2 << PLL_BS) | (26 << PLL_F),
+		702 * MHZ, (2 << PLL_BS) | (26 << PLL_F),
 	},{
 		728 * MHZ, (2 << PLL_BS) | (27 << PLL_F),
 	}, {

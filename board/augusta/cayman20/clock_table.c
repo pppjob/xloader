@@ -63,8 +63,8 @@ struct clock_default_setting div_setting[] = {
 
 struct clock_default_setting pll_setting[] = {
 	{UNCHANGED, 1, 624 * MHZ},	/*"pll1"*/
-	{UNCHANGED, 0, 708 * MHZ},	/*"pll2"*/
-	{UNCHANGED, 0, 806 * MHZ},	/*"pll3"*/
+	{UNCHANGED, 1, 702 * MHZ},	/*"pll2"*/
+	{UNCHANGED, 1, 806 * MHZ},	/*"pll3"*/
 	
 };
 #define	PLL_DEFSET_COUNT		ARRAY_SIZE(pll_setting)
