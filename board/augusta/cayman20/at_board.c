@@ -35,6 +35,7 @@
 #include <asm/arch-atxx/clock.h>
 #include <asm/arch-atxx/regs_base.h>
 #include <asm/arch-atxx/map_table.h>
+#include <asm/arch-atxx/pm.h>
 
 #include "clock_table.c"
 
@@ -59,6 +60,7 @@ uint32_t main_course(char *boot_dev_name)
 	int ret;
 	struct boot_parameter *parameter = &b_param;
 	boot_info_t *info = &boot_info;
+        unsigned int hwcfg;
 
 	/* read config data area for clock information */
 	ret = env_init();
@@ -68,6 +70,13 @@ uint32_t main_course(char *boot_dev_name)
 	}
 	
 	mddr_init(parameter);
+
+	hwcfg = pm_read_reg(HWCFGR);
+	if (hwcfg != 0 && hwcfg != 2) {
+		printf("Enter HWCFG CCC mode\n");
+		/* uart ccc mode */
+		goto done;
+	}
 
 	if (parameter->mddr_data_send) {
 		memcpy(parameter->magic, 
