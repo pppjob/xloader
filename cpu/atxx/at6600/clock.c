@@ -189,6 +189,15 @@ static int atxx_pll_enable(struct clk *clk, int enable)
 		pllreg |= 1 << PLL_PD;
 
 	writel(pllreg, PLLCTLR(clk->index));
+
+	/* To work around an asic bug: if PLL2/PLL3 is powered-down,
+	 * needs to rewrite PLL1 regs, in case sleep can't be waked up */
+	if (enable == 0 && clk->index != 0) {
+		pllreg = readl(PLLCTLR(0));
+		pllreg &= ~(1 << PLL_PD);
+		writel(pllreg, PLLCTLR(0));
+	}
+
 	return 0;
 }
 
