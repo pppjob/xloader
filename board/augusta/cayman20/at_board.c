@@ -60,7 +60,7 @@ uint32_t main_course(char *boot_dev_name)
 	int ret;
 	struct boot_parameter *parameter = &b_param;
 	boot_info_t *info = &boot_info;
-        unsigned int hwcfg;
+        unsigned int hwcfg, swcfg;
 
 	/* read config data area for clock information */
 	ret = env_init();
@@ -121,6 +121,11 @@ done:
 			(char *)CFG_LOADADDR + sizeof(atxx_image_header_t),
 			info->firm_size);
 	}
+
+	swcfg = pm_read_reg(SWCFGR);
+	swcfg |= SWCFGR_POWERON_XLOAD;
+	pm_write_reg(SWCFGR, swcfg);
+
 	return (u32)info->run_address;
 }
 
