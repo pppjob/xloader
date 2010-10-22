@@ -371,6 +371,7 @@ static int atxx_div_set_rate(struct clk *clk, unsigned long rate)
 	divreg = readl(DIVCTLR(clk->index));
 
 	if (div == 1) {
+		divreg &= ~(DIV_N_MASK << DIV_N);
 		divreg |= 1 << DIV_1;
 	} else {
 		divreg &= ~(1 << DIV_1);

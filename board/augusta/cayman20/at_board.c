@@ -72,7 +72,7 @@ uint32_t main_course(char *boot_dev_name)
 	mddr_init(parameter);
 
 	hwcfg = pm_read_reg(HWCFGR);
-	if (hwcfg != 0 && hwcfg != 2) {
+	if (hwcfg == 1) {
 		printf("Enter HWCFG CCC mode\n");
 		/* uart ccc mode */
 		goto done;

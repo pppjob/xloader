@@ -22,43 +22,43 @@
 
 /* array order is same as struct div_name */
 struct clock_default_setting div_setting[] = {
-	{UNCHANGED, 1, 624 * MHZ},	/*"arm" */
-	{UNCHANGED, 1, 312 * MHZ},	/*"dsphclk" */
-	{UNCHANGED, 1, 52 * MHZ},	/*"comm" TODO: dsp */
-	{UNCHANGED, 1, 57 * MHZ},	/*"uart" */
-	{UNCHANGED, 0, UNCHANGED},	/*"ms" memory stick*/
-	{PLL1,      0, 52 * MHZ},	/*"camclk"*/
-	{PLL1,      0, 26 * MHZ},	/*"camera"*/
-	{UNCHANGED, 1, 156 * MHZ},	/*"vpclk"*/
-	{UNCHANGED, 1, 312 * MHZ},	/*"dspcore"*/
-	{UNCHANGED, 1, 208 * MHZ},	/*"axi"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"spi0"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"spi1"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"spi2"*/
-	{UNCHANGED, 1, UNCHANGED},	/*"sd"*/
-	{PLL1,      0, 48 * MHZ},	/*"usb1"*/
-	{PLL1,      0, 48 * MHZ},	/*"bt"*/
-	{UNCHANGED, 1, 156 * MHZ},	/*"proc arc"*/
-	{UNCHANGED, 1, 104 * MHZ},	/*"app"*/
-	{UNCHANGED, 1, 156 * MHZ},	/*"gclk" graphic mm_top TODO */
-	{UNCHANGED, 1, UNCHANGED},	/*"pclk" apb clock */
-	{UNCHANGED, 1, 156 * MHZ},	/*"mddr"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"gps2"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"hdmi_s0"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"hdmi"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"i2s0_s0"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"i2s0"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"i2s1_s0"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"i2s1"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"i2s2_s0"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"i2s2"*/
-	{PLL1,      1, 156 * MHZ},	/*"vsclk" TODO */
+	{PLL1,    1, 624 * MHZ},	/*"arm" */
+	{PLL1,    1, 312 * MHZ},	/*"dsphclk" */
+	{PLL1,    1, 52 * MHZ},	/*"comm" TODO: dsp */
+	{PLL1,    1, 57 * MHZ},	/*"uart" */
+	{CRYSTAL, 0, UNCHANGED},	/*"ms" memory stick*/
+	{PLL1,    0, 52 * MHZ},	/*"camclk"*/
+	{PLL1,    0, 26 * MHZ},	/*"camera"*/
+	{PLL1,    1, 156 * MHZ},	/*"vpclk"*/
+	{PLL1,    1, 312 * MHZ},	/*"dspcore"*/
+	{PLL1,    1, 156 * MHZ},	/*"axi"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"spi0"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"spi1"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"spi2"*/
+	{CRYSTAL, 1, UNCHANGED},	/*"sd"*/
+	{PLL1,    0, 48 * MHZ},	/*"usb1"*/
+	{PLL1,    0, 48 * MHZ},	/*"bt"*/
+	{PLL1,    1, 156 * MHZ},	/*"proc arc"*/
+	{PLL1,    1, 52 * MHZ},	/*"app"*/
+	{PLL1,    1, 156 * MHZ},	/*"gclk" graphic mm_top TODO */
+	{CRYSTAL, 1, UNCHANGED},	/*"pclk" apb clock */
+	{PLL1,    1, 156 * MHZ},	/*"mddr"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"gps2"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"hdmi_s0"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"hdmi"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"i2s0_s0"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"i2s0"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"i2s1_s0"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"i2s1"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"i2s2_s0"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"i2s2"*/
+	{PLL1,    1, 156 * MHZ},	/*"vsclk" TODO */
 	{UNCHANGED, 0, UNCHANGED},	/*"d_not_use0"*/
-	{PLL1,      0, 48 * MHZ},	/*"usb0"*/
-	{PLL1,      0, 26 * MHZ},	/*"iqadc_s0"*/
-	{PLL1,      0, 24 * MHZ},	/*"vgaclk"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"tvclk"*/
-	{UNCHANGED, 0, UNCHANGED},	/*"iqadc"*/
+	{PLL1,    0, 48 * MHZ},	/*"usb0"*/
+	{PLL1,    0, 26 * MHZ},	/*"iqadc_s0"*/
+	{PLL1,    0, 24 * MHZ},	/*"vgaclk"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"tvclk"*/
+	{CRYSTAL, 0, UNCHANGED},	/*"iqadc"*/
 };
 
 struct clock_default_setting pll_setting[] = {

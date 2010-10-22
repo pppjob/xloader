@@ -87,10 +87,13 @@ static int dwapbuart_init(uart_t *p_uart)
 	serial_write_reg(UART_LCR_OFS, bUART_LCR_DLS);
 
 	/* enable loopback */
-	if(p_uart->loop_enable == 1)
-		serial_write_reg(UART_MCR_OFS, bUART_MCR_LB);
-	else	/* disable loopback */
-		serial_write_reg(UART_MCR_OFS, ~bUART_MCR_LB);
+	if(p_uart->loop_enable == 1) {
+		val = serial_read_reg(UART_MCR_OFS);
+		serial_write_reg(UART_MCR_OFS, val | bUART_MCR_LB);
+	} else {	/* disable loopback */
+		val = serial_read_reg(UART_MCR_OFS);
+		serial_write_reg(UART_MCR_OFS, val & ~bUART_MCR_LB);
+	}
 
 	uart_clear_rx_fifo();
 	uart_clear_tx_fifo();
