@@ -31,7 +31,7 @@ struct clock_default_setting div_setting[] = {
 	{PLL1,    0, 26 * MHZ},	/*"camera"*/
 	{PLL1,    1, 156 * MHZ},	/*"vpclk"*/
 	{PLL1,    1, 312 * MHZ},	/*"dspcore"*/
-	{PLL1,    1, 156 * MHZ},	/*"axi"*/
+	{PLL1,    1, 208 * MHZ},	/*"axi"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"spi0"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"spi1"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"spi2"*/
@@ -39,7 +39,7 @@ struct clock_default_setting div_setting[] = {
 	{PLL1,    0, 48 * MHZ},	/*"usb1"*/
 	{PLL1,    0, 48 * MHZ},	/*"bt"*/
 	{PLL1,    1, 156 * MHZ},	/*"proc arc"*/
-	{PLL1,    1, 52 * MHZ},	/*"app"*/
+	{PLL1,    1, 104 * MHZ},	/*"app"*/
 	{PLL1,    1, 156 * MHZ},	/*"gclk" graphic mm_top TODO */
 	{CRYSTAL, 1, UNCHANGED},	/*"pclk" apb clock */
 	{PLL1,    1, 156 * MHZ},	/*"mddr"*/
