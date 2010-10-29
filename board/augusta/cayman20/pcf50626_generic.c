@@ -43,6 +43,17 @@ static u8 pcf50626_read_reg(u8 reg_addr, u8 *reg_value)
 
 /*--------------------power operation-----------------------------------*/
 
+void pcf50626_DCD1_power_supply(u32 voltage, int mode)
+{
+	u32 reg1, reg3;
+
+	reg1 = (voltage - 600)/25;
+	reg3 = mode? 0xe0 : 0x00;
+	pcf50626_write_reg( DCD1C1, reg1);
+	pcf50626_write_reg( DCD1C3, 0x00);
+	pcf50626_write_reg( DCD1C4, 0xf);
+	pcf50626_write_reg( DCD1C2, reg3);
+}
 
 void pcf50626_DCD2_power_supply(u32 voltage, int mode)
 {
@@ -61,6 +72,7 @@ void pcf50626_DCD2_power_supply(u32 voltage, int mode)
   */
 u8 pcf50626_set_default_power_supply(void)
 {
+	pcf50626_DCD1_power_supply(1300, 1);
 	pcf50626_DCD2_power_supply(1800, 1);
 }
 

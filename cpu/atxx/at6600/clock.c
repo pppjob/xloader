@@ -164,12 +164,14 @@ static struct pll_set pll_table[] = {
 	}, {
 		312 * MHZ, (1 << PLL_BS) | (11 << PLL_F),
 	}, {
+		455 * MHZ, (1 << PLL_BS) | (34 << PLL_F) |(1 << PLL_R),
+	}, {
 		481 * MHZ, (1 << PLL_BS) | (36 << PLL_F) | (1 << PLL_R),
 	}, {
 		624 * MHZ, (2 << PLL_BS) | (23 << PLL_F),
 	}, {
 		702 * MHZ, (2 << PLL_BS) | (26 << PLL_F),
-	},{
+	}, {
 		728 * MHZ, (2 << PLL_BS) | (27 << PLL_F),
 	}, {
 		806 * MHZ, (2 << PLL_BS) | (30 << PLL_F),
@@ -496,21 +498,24 @@ static int clk_set_arm(unsigned long clkv)
 	
 	clk = clk_get("arm");
 	old_clkv = clk_get_rate(clk);
+
 	if(old_clkv == clkv)
 		return 0;
+
 	switch (clkv) {
-		case 312:
-		case 624:
-			ret = clk_set_rate(clk, clkv * MHZ);
+		case 156000000:
+		case 312000000:
+		case 624000000:
+			clkp = clk_get ("pll1");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
 			break;
-		case 806:
-#if 0
-			clkp = clk_get("pll3");
-			ret = clk_set_rate(clkp, clkv * MHZ);
-			ret = clk_enable(clkp);
-			ret = clk_set_parent(clk, clkp);
-			ret = clk_set_rate(clk, clkv * MHZ);
-#endif
+		case 702000000:
+			clkp = clk_get ("pll2");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
 			break;
 		default:
 			printf("Not support, arm clock only: 312M "
@@ -520,20 +525,144 @@ static int clk_set_arm(unsigned long clkv)
 	return ret;
 }
 
-static int clk_set_axi(unsigned long clkv)
+static int clk_set_axi (unsigned long clkv)
 {
-	return 0;
+	struct clk *clk;
+	unsigned long  old_clkv;
+	int ret;
+
+	clk = clk_get ("axi");
+	old_clkv = clk_get_rate (clk);
+	if (old_clkv == clkv)
+		return 0;
+
+	ret = clk_set_rate (clk, clkv);
+
+	return ret;
 }
 
-static int clk_set_mddr(unsigned long clkv)
+static int clk_set_mddr (unsigned long clkv)
 {
-	return 0;
+	struct clk *clk;
+	struct clk *clkp;
+	unsigned long  old_clkv;
+	int ret;
+
+	clk = clk_get ("mddr");
+	old_clkv = clk_get_rate (clk);
+	if (old_clkv == clkv)
+		return 0;
+
+	switch (clkv) {
+		case 175500000:
+                        clkp = clk_get ("pll2");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		default:
+			clkp = clk_get ("pll1");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+	}
+
+	return ret;
 }
 
-static int clk_set_app(unsigned long clkv)
+static int clk_set_app (unsigned long clkv)
 {
-	return 0;
+	struct clk *clk;
+	unsigned long  old_clkv;
+	int ret;
+
+	clk = clk_get ("app");
+	old_clkv = clk_get_rate (clk);
+	if (old_clkv == clkv)
+		return 0;
+
+	ret = clk_set_rate (clk, clkv);
+
+	return ret;
 }
+
+static int clk_set_dspcore (unsigned long clkv)
+{
+	struct clk *clk;
+	struct clk *clkp;
+	unsigned long  old_clkv;
+	int ret;
+
+	clk = clk_get ("dspcore");
+	old_clkv = clk_get_rate (clk);
+	if (old_clkv == clkv)
+		return 0;
+
+	switch (clkv) {
+		case 455000000:
+			clkp = clk_get ("pll3");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		default:
+			clkp = clk_get ("pll1");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+	}
+
+	return ret;
+}
+
+static int clk_set_vpclk (unsigned long clkv)
+{
+	struct clk *clk;
+	unsigned long  old_clkv;
+	int ret;
+
+	clk = clk_get ("vpclk");
+	old_clkv = clk_get_rate (clk);
+	if (old_clkv == clkv)
+		return 0;
+
+	ret = clk_set_rate (clk, clkv);
+
+	return ret;
+}
+
+static int clk_set_gclk (unsigned long clkv)
+{
+	struct clk *clk;
+	unsigned long  old_clkv;
+	int ret;
+
+	clk = clk_get ("gclk");
+	old_clkv = clk_get_rate (clk);
+	if (old_clkv == clkv)
+		return 0;
+
+	ret = clk_set_rate (clk, clkv);
+
+	return ret;
+}
+
+static int clk_set_vsclk (unsigned long clkv)
+{
+	struct clk *clk;
+	unsigned long  old_clkv;
+	int ret;
+
+	clk = clk_get ("vsclk");
+	old_clkv = clk_get_rate (clk);
+	if (old_clkv == clkv)
+		return 0;
+
+	ret = clk_set_rate (clk, clkv);
+
+	return ret;
+}
+
 
 void regulate_clock(void)
 {
@@ -558,7 +687,7 @@ void regulate_clock(void)
 	}
 
 	if ((s = getenv ("clk-mddr")) != NULL) {
-		clkv = simple_strtoul (s, NULL, 0);
+		clkv =  simple_strtoul (s, NULL, 0);
 		ret = clk_set_mddr(clkv);
 		if (ret < 0){
 			printf("set mddr clk fail %d\n", ret);
@@ -572,10 +701,48 @@ void regulate_clock(void)
 			printf("set app clk fail %d\n", ret);
 		}
 	}
-	printf("clk-arm %dM ", clk_get_rate(clk_get("arm"))/1000000);
-	printf("clk-axi %dM ", clk_get_rate(clk_get("axi"))/1000000);
-	printf("clk-mddr %dM ", clk_get_rate(clk_get("mddr"))/1000000);
-	printf("clk-app %dM \n", clk_get_rate(clk_get("app"))/1000000);
+
+	if ((s = getenv ("clk-dspcore")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_set_dspcore(clkv);
+		if (ret < 0){
+			printf("set dspcore clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = getenv ("clk-vpclk")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_set_vpclk(clkv);
+		if (ret < 0){
+			printf("set vpclk clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = getenv ("clk-gclk")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_set_gclk(clkv);
+		if (ret < 0){
+			printf("set gclk clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = getenv ("clk-vsclk")) != NULL) {
+		clkv = simple_strtoul (s, NULL, 0);
+		ret = clk_set_vsclk(clkv);
+		if (ret < 0){
+			printf("set vsclk clk fail %d\n", ret);
+		}
+	}
+
+
+	printf("clk-arm %d ", clk_get_rate(clk_get("arm")));
+	printf("clk-axi %d ", clk_get_rate(clk_get("axi")));
+	printf("clk-mddr %d ", clk_get_rate(clk_get("mddr")));
+	printf("clk-app %d ", clk_get_rate(clk_get("app")));
+	printf("clk-dspcore %d ", clk_get_rate(clk_get("dspcore")));
+	printf("clk-vpclk %d ", clk_get_rate(clk_get("vpclk")));
+	printf("clk-gclk %d ", clk_get_rate(clk_get("gclk")));
+	printf("clk-vsclk %d \n", clk_get_rate(clk_get("vsclk")));
 
 	return;
 }
