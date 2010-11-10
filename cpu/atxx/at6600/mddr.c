@@ -30,12 +30,482 @@
 #include <asm/arch-atxx/mddr.h>
 #include <asm/arch-atxx/delay.h>
 
-void mddr_calibration(uint8_t *buf)
+
+#define CALIBRATE_REGION		0x80
+#define MDDRMEM_TEST_LENGTH		(120)
+#define MDDRMEM_BASE_ADDR		(0x88000000)
+#define MDDR_CALIBRATE_ADDR_0           0x3ffbe0d8
+#define MDDR_CALIBRATE_ADDR_1           0x3ffbe0dc
+#define MDDR_CALIBRATE_ADDR_2           0x3ffbe0e0
+#define MDDR_CALIBRATE_ADDR_3           0x3ffbe0e4
+#define MDDR_CALIBRATE_ADDR_4           0x3ffbe0e8
+#define MDDR_CALIBRATE_ADDR_5           0x3ffbe0ec
+#define MDDR_CALIBRATE_ADDR_6           0x3ffbe0f0
+#define MDDR_CALIBRATE_ADDR_7           0x3ffbe0f4
+#define	SQUARE_LENGTH 16
+uint32_t square_image[SQUARE_LENGTH][SQUARE_LENGTH];
+uint32_t pattern[SQUARE_LENGTH] =
 {
-	//receive cal_date[8]
+0xffffffff, 0x00000000, 0x0000ffff, 0xffff0000,
+0x55555555, 0xaaaaaaaa, 0x5a5a5a5a, 0xa5a5a5a5,
+0x12345678, 0x87654321, 0x13572468, 0x24681357,
+0xff5500aa, 0x0af5af05, 0x5f0aaf50, 0x0055aaff
+};
 
-	printf("MDDR Calibration ...\n");
+uint32_t C0_mddr_cfg_data[2] =
+{
+0x00121f10 ,0x00121f04
+};
 
+static unsigned long int next = 1;
+
+int rand(void)
+{
+	next = next*1103515245 + 12345;
+	return (unsigned int)(next/65536)%32768;
+}
+
+void srand (unsigned int seed)
+{
+	next = seed;
+}
+
+int mem_special_test (uint32_t repeat_cnt, uint32_t test_cnt)
+{
+	uint32_t size, i, j, k;
+	uint32_t src_addr, dst_addr = 0;
+	uint32_t value_src, value_des;
+
+	size = SQUARE_LENGTH*SQUARE_LENGTH;
+	src_addr = (uint32_t)&square_image[0][0];
+	for (j = 0; j < test_cnt; j++) {
+		for (i = 0; i < repeat_cnt; i++) {
+			/*make a random addr in mddr*/
+			do{
+				dst_addr = rand()%MDDRMEM_TEST_LENGTH;	/*M*/
+				dst_addr = dst_addr*(1024*1024);
+				dst_addr += MDDRMEM_BASE_ADDR;
+			}while ((dst_addr&0xfff00000) == (src_addr&0xfff00000));
+
+			dst_addr += (20*rand())%(1000*1024);
+			dst_addr = dst_addr&0xfffffffc;
+			/* test with 8bit 16bit and 32bit read/write.*/
+			if ((i%3) == 0){
+				for(k = 0; k < size; k++) {
+					*(uint32_t *)(dst_addr + 4*k) = *(uint32_t *)(src_addr + 4*k);
+				}
+			} else if ((i%3) == 1) {
+				for (k = 0; k < 4*size; k++) {
+					*(uint8_t *)(dst_addr+k) = *(uint8_t *)(src_addr + k);
+				}
+			} else {
+				for (k = 0; k < 2*size; k++) {
+					*(uint16_t *)(dst_addr + 2*k) = *(uint16_t *)(src_addr + 2*k);
+				}
+			}
+			src_addr = dst_addr;
+		}
+		for (i = 0; i < size; i++) {
+			value_src = square_image[i/SQUARE_LENGTH][i%SQUARE_LENGTH];
+			value_des = *(uint32_t *)(dst_addr + 4*i);
+			if (value_des != value_src) {
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+int mem_special_test_bytemask (uint32_t repeat_cnt, uint32_t test_cnt, uint32_t byte_mask)
+{
+	uint32_t size, i, j, k;
+	uint32_t src_addr, dst_addr = 0;
+	uint32_t value_src, value_des;
+
+	size = SQUARE_LENGTH*SQUARE_LENGTH;
+	src_addr = (uint32_t)&square_image[0][0];
+	for (j = 0; j < test_cnt; j++) {
+		for (i = 0; i < repeat_cnt; i++) {
+			/* make a random addr in mddr*/
+			do {
+				dst_addr = rand()%MDDRMEM_TEST_LENGTH;	/*M*/
+				dst_addr = dst_addr*(1024*1024);
+				dst_addr += MDDRMEM_BASE_ADDR;
+			} while ((dst_addr&0xfff00000) == (src_addr&0xfff00000));
+
+			dst_addr += (20*rand())%(1000*1024);
+			dst_addr = dst_addr&0xfffffffc;
+			/* test with 8bit 16bit and 32bit read/write.*/
+			if ((i%3) == 0){
+				for (k = 0; k < size; k++) {
+					*(uint32_t *)(dst_addr + 4*k) = *(uint32_t *)(src_addr + 4*k);
+				}
+			} else if ((i%3) == 1) {
+				for (k = 0; k < 4*size; k++) {
+					*(uint8_t *)(dst_addr+k) = *(uint8_t *)(src_addr+k);
+				}
+			} else {
+				for (k = 0; k < 2*size; k++) {
+					*(uint16_t *)(dst_addr+2*k) = *(uint16_t *)(src_addr+2*k);
+				}
+			}
+			src_addr = dst_addr;
+		}
+		for (i = 0; i < size; i++) {
+			value_src = square_image[i/SQUARE_LENGTH][i%SQUARE_LENGTH];
+			value_des = *(uint32_t *)(dst_addr + 4*i);
+			if ((value_des & byte_mask) != (value_src & byte_mask)) {
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+static void change_cal_reg (uint32_t addr, uint8_t cal_data, uint32_t cal_byte)
+{
+	uint32_t temp;
+
+	temp = *(volatile uint32_t*)(addr);
+	if (cal_byte == 0) {
+		temp = (cal_data << 24) + (cal_data << 16) + (cal_data << 8) + (cal_data);
+	}
+	else {
+		temp &= ~(0xff << (8*(cal_byte - 1)));
+		temp |= cal_data << (8*(cal_byte - 1));
+	}
+	*(volatile uint32_t*)(addr) = temp;
+}
+
+static void change_cal_reg_4ch (uint32_t addr, uint8_t cal_data, uint32_t cal_byte)
+{
+	change_cal_reg (addr, cal_data, cal_byte);
+	change_cal_reg (addr + 0x04, cal_data, cal_byte);
+	change_cal_reg (addr + 0x08, cal_data, cal_byte);
+	change_cal_reg (addr + 0x0c, cal_data, cal_byte);
+}
+
+static uint8_t calibrate_4ch (uint32_t calibrate_addr, uint32_t rev_value, uint32_t calibrate_byte)
+{
+	uint32_t max_cfg = 0, min_cfg = 0;
+	uint32_t rev_val;
+	uint32_t window_val;
+	uint8_t flag = 0, down_flag = 0;
+	int pass_length = 0, fail_length = 0;
+	int down_fail_length = 0;
+	uint32_t aver = 0, min = 0, max = 0;
+
+	/*calibrate_byte=0: calibrate all bytes, and all the bytes are same.*/
+	if (calibrate_byte == 0)
+	{
+		rev_val = (uint8_t)(rev_value&0xff);
+	}
+	else
+	{
+		rev_val = (uint8_t)((rev_value >> (8*(calibrate_byte-1)))&0xff);
+	}
+
+	/*find the window*/
+	change_cal_reg_4ch (calibrate_addr, rev_val, calibrate_byte);
+	if (!mem_special_test (20, 3)) {
+		window_val = rev_val;
+	}else {
+		min = rev_val;
+		max = CALIBRATE_REGION;
+		while (1) {
+			aver = (min + max)/2;
+			change_cal_reg_4ch (calibrate_addr, aver, calibrate_byte);
+			if (!mem_special_test (20, 3)) {
+				window_val = rev_val;
+				break;
+			} else {
+				min = aver;
+				fail_length++;
+				if (fail_length > 9) {
+					fail_length = 0;
+					down_fail_length++;
+					min = 0;
+					max = rev_val;
+					if (down_fail_length >= 2) {
+						down_fail_length = 0;
+						printf("Calibrate FAIL! Can not find the window.");
+						return 0xff;
+					}
+				}
+
+			}
+
+		}
+	}
+
+	min = window_val;
+	max = CALIBRATE_REGION;
+	fail_length = 0;
+	flag = 1;
+	down_flag = 1;
+
+	printf("window: 0x%08x. ", window_val);
+
+	while (1) {
+		/*search max value*/
+		if (flag) {
+			aver = (min + max)/2;
+			change_cal_reg_4ch (calibrate_addr, aver, calibrate_byte);
+			if (!mem_special_test (20, 3)) {
+				min = aver;
+				pass_length++;
+				if (pass_length > 9) {
+					max_cfg = aver;
+					flag = 0;
+				}
+			} else {
+				fail_length++;
+				pass_length = 0;
+				max = aver;
+				if (fail_length > 9) {
+					max_cfg = aver;
+					flag = 0;
+				}
+			}
+		/*search min value*/
+		} else {
+			if (down_flag) {
+				down_flag = 0;
+				pass_length = 0;
+				fail_length = 0;
+				min = 0;
+				max = window_val;
+			}
+			aver = (min + max)/2;
+			change_cal_reg_4ch (calibrate_addr, aver, calibrate_byte);
+			if (!mem_special_test (20, 3)) {
+				max = aver;
+				pass_length++;
+				if (pass_length > 9) {
+					min_cfg = aver;
+					break;
+				}
+			} else {
+				min = aver;
+				fail_length++;
+				pass_length = 0;
+				if (fail_length > 9) {
+					min_cfg = aver;
+					break;
+				}
+			}
+		}
+	}
+
+	rev_val = (max_cfg+min_cfg)/2;
+
+	printf ("min->0x%08x. max->0x%08x. cfg->0x%08x.", min_cfg, max_cfg, rev_val);
+	change_cal_reg_4ch (calibrate_addr, rev_val, calibrate_byte);
+
+	return rev_val;
+}
+
+static uint8_t calibrate_bytemask (uint32_t calibrate_addr, uint32_t rev_value, uint32_t calibrate_byte, uint32_t byte_mask)
+{
+	uint32_t max_cfg = 0, min_cfg = 0;
+	uint32_t rev_val;
+	uint32_t window_val;
+	uint8_t flag = 0, down_flag;
+	int pass_length = 0, fail_length = 0;
+	int down_fail_length = 0;
+	uint32_t aver, min, max;
+
+	/*calibrate_byte=0: calibrate all bytes, and all the bytes are same.*/
+	if (calibrate_byte == 0)
+	{
+		rev_val = (uint8_t)(rev_value&0xff);
+	}
+	else
+	{
+		rev_val = (uint8_t)((rev_value >> (8*(calibrate_byte-1)))&0xff);
+	}
+
+	/*find the window*/
+	change_cal_reg (calibrate_addr, rev_val, calibrate_byte);
+
+	if (!mem_special_test_bytemask (20, 3, byte_mask)) {
+		window_val = rev_val;
+	}else {
+		min = rev_val;
+		max = CALIBRATE_REGION;
+		while (1) {
+			aver = (min + max)/2;
+			change_cal_reg (calibrate_addr, aver, calibrate_byte);
+			if (!mem_special_test_bytemask (20, 3, byte_mask)) {
+				window_val = rev_val;
+				break;
+			} else {
+				min = aver;
+				fail_length++;
+				if (fail_length > 9) {
+					fail_length = 0;
+					down_fail_length++;
+					min = 0;
+					max = rev_val;
+					if (down_fail_length >= 2) {
+						down_fail_length = 0;
+						printf("Calibrate FAIL! Can not find the window.");
+						return 0xff;
+					}
+				}
+
+			}
+
+		}
+	}
+
+	printf("window: 0x%08x. ", window_val);
+	min = window_val;
+	max = CALIBRATE_REGION;
+	fail_length = 0;
+	flag = 1;
+	down_flag = 1;
+	while (1) {
+		/*search max value*/
+		if (flag) {
+			aver = (min + max)/2;
+			change_cal_reg (calibrate_addr, aver, calibrate_byte);
+			if (!mem_special_test_bytemask (20, 3, byte_mask)) {
+				min = aver;
+				pass_length++;
+				if (pass_length > 9) {
+					max_cfg = aver;
+					flag = 0;
+				}
+			} else {
+				fail_length++;
+				pass_length = 0;
+				max = aver;
+				if (fail_length > 9) {
+					max_cfg = aver;
+					flag = 0;
+				}
+			}
+		/*search min value*/
+		} else {
+			if (down_flag) {
+				down_flag = 0;
+				pass_length = 0;
+				fail_length = 0;
+				min = 0;
+				max = window_val;
+			}
+			aver = (min + max)/2;
+			change_cal_reg (calibrate_addr, aver, calibrate_byte);
+			if (!mem_special_test_bytemask (20, 3, byte_mask)) {
+				max = aver;
+				pass_length++;
+				if(pass_length > 9) {
+					min_cfg = aver;
+					break;
+				}
+			} else {
+				min = aver;
+				fail_length++;
+				pass_length = 0;
+				if (fail_length > 9) {
+					min_cfg = aver;
+					break;
+				}
+			}
+		}
+	}
+
+	rev_val = (max_cfg+min_cfg)/2;
+
+	printf ("min->0x%08x. max->0x%08x. cfg->0x%08x.", min_cfg, max_cfg, rev_val);
+	change_cal_reg_4ch (calibrate_addr, rev_val, calibrate_byte);
+
+	return rev_val;
+}
+
+void mddr_calibration (uint8_t *buf)
+{
+	uint32_t rev_val;
+	uint32_t i, j;
+	uint8_t cal_result;
+
+	printf ("MDDR Calibration ...\n");
+
+	for (i = 0; i < SQUARE_LENGTH; i++)
+	{
+		for (j = 0; j < SQUARE_LENGTH; j++)
+		{
+			square_image[i][j] = pattern[i];
+		}
+	}
+	srand (5);
+
+	rev_val = C0_mddr_cfg_data[0];
+	printf ("\n\rCalibrate d8-e4:");
+	cal_result = calibrate_4ch (MDDR_CALIBRATE_ADDR_0, rev_val, 2);
+	if (cal_result == 0xff) {
+		goto fail;
+	}
+
+	printf("\n\rCalibrate d8:");
+	cal_result = calibrate_bytemask (MDDR_CALIBRATE_ADDR_0, rev_val, 2, (uint32_t)0xff);
+	if (cal_result == 0xff) {
+		goto fail;
+	}
+
+	printf ("\n\rCalibrate dc:");
+	cal_result = calibrate_bytemask (MDDR_CALIBRATE_ADDR_1, rev_val, 2, (uint32_t)0xff << 8);
+	if (cal_result == 0xff) {
+		goto fail;
+	}
+
+	printf ("\n\rCalibrate e0:");
+	cal_result = calibrate_bytemask (MDDR_CALIBRATE_ADDR_2, rev_val, 2, (uint32_t)0xff << 16);
+	if (cal_result == 0xff) {
+		goto fail;
+	}
+
+	printf ("\n\rCalibrate e4:");
+	cal_result = calibrate_bytemask (MDDR_CALIBRATE_ADDR_3, rev_val, 2, (uint32_t)0xff << 24);
+	if (cal_result == 0xff) {
+		goto fail;
+	}
+
+	rev_val = C0_mddr_cfg_data[1];
+
+	printf ("\n\rCalibrate e8-f4:");
+	cal_result = calibrate_4ch (MDDR_CALIBRATE_ADDR_4, rev_val, 2);
+	if (cal_result == 0xff) {
+		goto fail;
+	}
+
+	printf ("\n\rCalibrate e8:");
+	cal_result = calibrate_bytemask (MDDR_CALIBRATE_ADDR_4, rev_val, 2, (uint32_t)0xff);
+	if (cal_result == 0xff) {
+		goto fail;
+	}
+
+	printf ("\n\rCalibrate ec:");
+	cal_result = calibrate_bytemask (MDDR_CALIBRATE_ADDR_5, rev_val, 2, (uint32_t)0xff << 8);
+	if (cal_result == 0xff) {
+		goto fail;
+	}
+
+	printf ("\n\rCalibrate f0:");
+	cal_result = calibrate_bytemask (MDDR_CALIBRATE_ADDR_6, rev_val, 2, (uint32_t)0xff << 16);
+	if (cal_result == 0xff) {
+		goto fail;
+	}
+
+	printf ("\n\rCalibrate f4:");
+	cal_result = calibrate_bytemask (MDDR_CALIBRATE_ADDR_7, rev_val, 2, (uint32_t)0xff << 24);
+	if (cal_result == 0xff) {
+		goto fail;
+	}
+
+	printf ("\nMDDR Calibration end...\n");
+fail:
 	return;
 }
 
