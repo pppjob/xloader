@@ -49,9 +49,6 @@ int board_init(void)
 	at6600_clock_init();
 	set_board_default_clock(pll_setting, div_setting,
 		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
-
-	i2c_pcf50626_init();
-	pcf50626_set_default_power_supply();
 	return 0;
 }
 
@@ -62,6 +59,10 @@ uint32_t main_course(char *boot_dev_name)
 	boot_info_t *info = &boot_info;
         unsigned int hwcfg, swcfg;
 
+	/* pmu init */
+	i2c_pcf50626_init();
+	pcf50626_set_default_power_supply();
+	
 	/* read config data area for clock information */
 	ret = env_init();
 	/* enviroment exist, follow its setting */

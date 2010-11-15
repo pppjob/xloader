@@ -72,26 +72,23 @@ void pcf50626_DCD2_power_supply(u32 voltage, int mode)
   */
 u8 pcf50626_set_default_power_supply(void)
 {
+	printf("\nset arm to 1.3V.");
 	pcf50626_DCD1_power_supply(1300, 1);
+	printf("\nset mddr to 1.8V.");
 	pcf50626_DCD2_power_supply(1800, 1);
 }
 
 u8 i2c_pcf50626_init(void)
 {
-    u8 buf;
+	u8 buf;
 
-    /*Init i2c*/
-    i2c_init(1,PCF50626_ADDR);
+	/*Init i2c*/
+	i2c_init(1,PCF50626_ADDR);
 
-    /* read a readonly register */
-    pcf50626_read_reg(ID, &buf);
+	/* read a readonly register */
+	pcf50626_read_reg(ID, &buf);
 
-    if(buf!=PCF50626_ID){
-		printf("\nPMU read ID failed, wrong id value = 0x%x", buf);
-		return -1;
-    } else{
-		return 0;
-    }
+	printf("\nPMU id value = 0x%x", buf);
 }
 
 
