@@ -32,6 +32,6 @@ enum mddr_size {
 };
 
 void mddr_init(struct boot_parameter *);
-void mddr_calibration(uint8_t*);
+int mddr_calibration(uint8_t*);
 
 #endif /* __ASM_ARCH_MDDR_H */

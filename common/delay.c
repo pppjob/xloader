@@ -15,6 +15,6 @@ void udelay(unsigned long us)
 
 void mdelay(unsigned long ms)
 {
-	udelay(1000); /* approximate */
+	udelay(ms * 1000); /* approximate */
 }
 
