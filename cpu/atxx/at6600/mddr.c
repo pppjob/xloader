@@ -81,7 +81,6 @@ int mem_special_test (uint8_t repeat_cnt)
 	size = SQUARE_LENGTH*SQUARE_LENGTH;
 	src_addr = (uint32_t)&square_image[0][0];
 
-	
 	for (j = 0; j < repeat_cnt; j++) {
 		/*make a random addr in mddr*/
 		do{
@@ -96,7 +95,6 @@ int mem_special_test (uint8_t repeat_cnt)
 		for(k = 0; k < size; k++) {
 			*(uint32_t *)(dst_addr + 4*k) = *(uint32_t *)(src_addr + 4*k);
 		}
-
 		for (i = 0; i < size; i++) {
 			value_src = square_image[i/SQUARE_LENGTH][i%SQUARE_LENGTH];
 			value_des = *(uint32_t *)(dst_addr + 4*i);
@@ -428,10 +426,13 @@ int fast_mddr_calibration (mddr_f_data_t *f_mddr, uint8_t *buf)
 	} else {
 		mmu_cache_on (memory_map);
 		ret = mddr_calibration (buf);
-		if (!ret)
+		if (!ret) {
+			return 0;
+		} else {
 			printf("fast mddr calibration failed.\n");
+			return -1;
+		}
 	}
-	return -1;
 }
 
 void mddr_core_init(uint32_t size)
@@ -600,8 +601,6 @@ void mddr_init(struct boot_parameter *b_param)
 		b_param->mddr_data_send = 0;
 		f_mddr = (mddr_f_data_t *)f_data->fd_buf;
 		size = f_mddr->mddr_size;
-		fast_mddr_calibration (f_mddr, b_param->f_mddr.mddr_cal_data);
-		
 	}else {
 		printf("MDDR factory data not found\n");
 		b_param->mddr_data_send = 1;
@@ -612,8 +611,11 @@ void mddr_init(struct boot_parameter *b_param)
 	printf("MDDR SIZE = %d MB\n", (1 << size) * 64);
 	mddr_core_init(size);
 
-	if (b_param->mddr_data_send)
+	if (b_param->mddr_data_send) {
 		mddr_calibration(b_param->f_mddr.mddr_cal_data);
+	} else {
+		fast_mddr_calibration (f_mddr, b_param->f_mddr.mddr_cal_data);
+	}
 
 	mddr_self_refresh();
 
