@@ -30,6 +30,7 @@
 #include <asm/arch-atxx/mddr.h>
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/delay.h>
+#include <malloc.h>
 
 #define CALIBRATE_REGION		0x80
 #define MDDRMEM_TEST_LENGTH		(120)
@@ -45,6 +46,7 @@
 #define MDDR_CTRL_30_1			0x3ffbe0f4
 #define	SQUARE_LENGTH			16
 
+struct boot_parameter *fd_param = (struct boot_parameter *)MDDR_BASE_ADDR;
 uint32_t square_image[SQUARE_LENGTH][SQUARE_LENGTH];
 uint32_t pattern[SQUARE_LENGTH] =
 {
@@ -56,7 +58,7 @@ uint32_t pattern[SQUARE_LENGTH] =
 
 uint32_t C0_mddr_cfg_data[2] =
 {
-	0x00121f10 ,0x00121f04
+	0x00121f10 ,0x00122704
 };
 
 static unsigned long int next = 1;
@@ -81,6 +83,7 @@ int mem_special_test (uint8_t repeat_cnt)
 	size = SQUARE_LENGTH*SQUARE_LENGTH;
 	src_addr = (uint32_t)&square_image[0][0];
 
+	udelay(50);
 	for (j = 0; j < repeat_cnt; j++) {
 		/*make a random addr in mddr*/
 		do{
@@ -229,7 +232,7 @@ static uint8_t calibrate_4ch (uint32_t calibrate_addr, uint32_t rev_value, uint3
 
 		}
 	}
-	printf("window: 0x%08x. ", window_val);
+	printf("window: 0x%02x. ", window_val);
 	return window_val;
 }
 
@@ -300,7 +303,7 @@ static uint8_t calibrate_bytemask (uint32_t calibrate_addr, uint8_t rev_value, u
 
 	rev_val = (max_cfg+min_cfg)/2;
 
-	printf ("min->0x%08x. max->0x%08x. cfg->0x%08x.", min_cfg, max_cfg, rev_val);
+	printf ("min->0x%02x. max->0x%02x. cfg->0x%02x.", min_cfg, max_cfg, rev_val);
 	change_cal_reg (calibrate_addr, 1, rev_val, calibrate_byte);
 
 	return rev_val;
@@ -401,7 +404,7 @@ fail:
 	return -1;
 }
 
-int fast_mddr_calibration (mddr_f_data_t *f_mddr, uint8_t *buf)
+int fast_mddr_calibration (mddr_f_data_t *f_mddr, struct boot_parameter *b_param)
 {
 	uint8_t *cal_data;
 	uint8_t i, j;
@@ -416,22 +419,30 @@ int fast_mddr_calibration (mddr_f_data_t *f_mddr, uint8_t *buf)
 	srand (5);
 
 	cal_data = f_mddr->mddr_cal_data;
-	for (i = 0; i < 8; i++)
+	for (i = 0; i < 4; i++)
 		change_cal_reg ((MDDR_CTRL_27_0 + 4*i), 1, cal_data[i], 2);
+	if (mem_special_test (2))
+		goto calibration;
 
-	/*if passed, use these value*/
-	if (!mem_special_test (2)) {
-		mmu_cache_on (memory_map);
-		return 0;
+	for (i = 4; i < 8; i++)
+		change_cal_reg ((MDDR_CTRL_27_0 + 4*i), 1, cal_data[i], 2);
+	if (mem_special_test (2))
+		goto calibration;
+
+	printf ("Fast MDDR Calibration end ...\n");
+	b_param->mddr_data_send = 0;
+	mmu_cache_on (memory_map);
+	return 0;
+
+calibration:
+	mmu_cache_on (memory_map);
+	b_param->mddr_data_send = 1;
+	ret = mddr_calibration (b_param->f_mddr.mddr_cal_data);
+	if (!ret) {
+		return 1;
 	} else {
-		mmu_cache_on (memory_map);
-		ret = mddr_calibration (buf);
-		if (!ret) {
-			return 0;
-		} else {
-			printf("fast mddr calibration failed.\n");
-			return -1;
-		}
+		printf("Fast MDDR Calibration failed.\n");
+		return -1;
 	}
 }
 
@@ -593,8 +604,9 @@ static void mddr_self_refresh(void)
 void mddr_init(struct boot_parameter *b_param)
 {
 	factory_data_t * f_data;
-	mddr_f_data_t * f_mddr;
+	mddr_f_data_t * f_mddr = NULL;
 	size_t size;
+	int ret;
 
 	f_data = factory_data_get(FD_MDDR);
 	if (f_data) {
@@ -613,9 +625,22 @@ void mddr_init(struct boot_parameter *b_param)
 
 	if (b_param->mddr_data_send) {
 		mddr_calibration(b_param->f_mddr.mddr_cal_data);
+		memcpy(fd_param->f_mddr.mddr_cal_data, b_param->f_mddr.mddr_cal_data, 8);
 	} else {
-		fast_mddr_calibration (f_mddr, b_param->f_mddr.mddr_cal_data);
+		ret = fast_mddr_calibration (f_mddr, b_param);
+		if (ret == 1) {
+			memcpy(fd_param->f_mddr.mddr_cal_data, b_param->f_mddr.mddr_cal_data, 8);
+		}
 	}
+
+	fd_param->mddr_data_send = b_param->mddr_data_send;
+	if (fd_param->mddr_data_send) {
+		fd_param->f_mddr.mddr_size = size;
+		memcpy(fd_param->magic,
+                        BOOT_MAGIC_STRING, BOOT_MAGIC_LENGTH);
+        } else {
+                memset(fd_param, 0, sizeof(struct boot_parameter));
+        }
 
 	mddr_self_refresh();
 
