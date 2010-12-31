@@ -32,9 +32,9 @@ struct clock_default_setting div_setting[] = {
 	{PLL1,    1, 156 * MHZ},	/*"vpclk"*/
 	{PLL1,    1, 312 * MHZ},	/*"dspcore"*/
 	{PLL1,    1, 208 * MHZ},	/*"axi"*/
-	{CRYSTAL, 0, UNCHANGED},	/*"spi0"*/
-	{CRYSTAL, 0, UNCHANGED},	/*"spi1"*/
-	{CRYSTAL, 0, UNCHANGED},	/*"spi2"*/
+	{PLL1, 0, 52 * MHZ},	/*"spi0"*/
+	{PLL1, 0, 52 * MHZ},	/*"spi1"*/
+	{PLL1, 0, 52 * MHZ},	/*"spi2"*/
 	{CRYSTAL, 1, UNCHANGED},	/*"sd"*/
 	{PLL1,    0, 48 * MHZ},	/*"usb1"*/
 	{PLL1,    0, 48 * MHZ},	/*"bt"*/
