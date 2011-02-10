@@ -74,8 +74,8 @@ u8 pcf50626_set_default_power_supply(void)
 {
 	printf("\nset arm to 1.3V.");
 	pcf50626_DCD1_power_supply(1300, 1);
-	printf("\nset mddr to 1.8V.");
-	pcf50626_DCD2_power_supply(1800, 1);
+	printf("\nset mddr to 1.9V.");
+	pcf50626_DCD2_power_supply(1900, 1);
 }
 
 u8 i2c_pcf50626_init(void)
