@@ -610,7 +610,8 @@ void mddr_init(struct boot_parameter *b_param)
 
 	f_data = factory_data_get(FD_MDDR);
 	if (f_data) {
-		b_param->mddr_data_send = 0;
+		/* mddr need do stress calibration everytime in mass production. */
+		b_param->mddr_data_send = 1;
 		f_mddr = (mddr_f_data_t *)f_data->fd_buf;
 		size = f_mddr->mddr_size;
 	}else {
