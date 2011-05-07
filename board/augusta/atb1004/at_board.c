@@ -33,22 +33,24 @@
 #include <asm/arch-atxx/mddr.h>
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/clock.h>
+#include <asm/arch-atxx/topctl.h>
 #include <asm/arch-atxx/regs_base.h>
 #include <asm/arch-atxx/map_table.h>
 #include <asm/arch-atxx/pm.h>
 
 #include "clock_table.c"
 
-#include "pcf50626_generic.h"
+#include "at2600_generic.h"
 
 struct boot_parameter b_param;
 
 int board_init(void)
 {
 	mmu_cache_on(memory_map);
-	at6600_clock_init();
+	atxx_clock_init();
 	set_board_default_clock(pll_setting, div_setting,
 		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
+
 	return 0;
 }
 
@@ -58,11 +60,11 @@ uint32_t main_course(char *boot_dev_name)
 	struct boot_parameter *parameter = &b_param;
 	boot_info_t *info = &boot_info;
         unsigned int hwcfg, swcfg;
-
-	/* pmu init */
-	i2c_pcf50626_init();
-	pcf50626_set_default_power_supply();
-	
+#if 0
+	printf("pmu init.\n");
+	i2c_at2600_init();
+	at2600_set_default_power_supply();
+#endif	
 	/* read config data area for clock information */
 	ret = env_init();
 	/* enviroment exist, follow its setting */

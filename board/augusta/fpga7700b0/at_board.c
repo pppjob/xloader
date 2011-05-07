@@ -33,44 +33,29 @@
 #include <asm/arch-atxx/mddr.h>
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/clock.h>
+#include <asm/arch-atxx/topctl.h>
 #include <asm/arch-atxx/regs_base.h>
 #include <asm/arch-atxx/map_table.h>
 #include <asm/arch-atxx/pm.h>
-
-#include "clock_table.c"
-
-#include "pcf50626_generic.h"
 
 struct boot_parameter b_param;
 
 int board_init(void)
 {
 	mmu_cache_on(memory_map);
-	at6600_clock_init();
-	set_board_default_clock(pll_setting, div_setting,
-		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
+
 	return 0;
 }
 
 uint32_t main_course(char *boot_dev_name)
 {
 	int ret;
-	struct boot_parameter *parameter = &b_param;
 	boot_info_t *info = &boot_info;
         unsigned int hwcfg, swcfg;
-
-	/* pmu init */
-	i2c_pcf50626_init();
-	pcf50626_set_default_power_supply();
-	
-	/* read config data area for clock information */
-	ret = env_init();
-	/* enviroment exist, follow its setting */
-	if(!ret){
-		regulate_clock();
-	}
-	
-	memory_init(parameter);
+/* */
+	printf("mddr memset!\n");
+	memset((void *)0x88800000, 0x5a, 0x100000);
+	printf("mddr memset done!\n");
 
 	hwcfg = pm_read_reg(HWCFGR);
 	if (hwcfg == 1) {
@@ -79,18 +64,6 @@ uint32_t main_course(char *boot_dev_name)
 		goto done;
 	}
 
-	if (parameter->mddr_data_send) {
-		memcpy(parameter->magic, 
-			BOOT_MAGIC_STRING, BOOT_MAGIC_LENGTH);
-	} else {
-		memset(parameter, 0, sizeof(struct boot_parameter));
-	}
-	/* read uboot boot address in config data area */
-	ret = get_boot_param();
-	if (ret) {
-		printf("Get boot parameter fail\n");
-		goto done;
-	}
 	/* nand read to mddr */
 	ret = nand_read_skip_bad(&nd, info->nand_offset, 
 		info->firm_size, 
@@ -107,6 +80,7 @@ uint32_t main_course(char *boot_dev_name)
 	}
 	strcpy(boot_dev_name, "Nand");
 	return info->run_address;
+
 done:
 	/* load uboot from uart */
 	strcpy(boot_dev_name, "UART");

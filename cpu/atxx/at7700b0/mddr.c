@@ -47,6 +47,11 @@
 #define	SQUARE_LENGTH			16
 
 struct boot_parameter *fd_param = (struct boot_parameter *)MDDR_BASE_ADDR;
+
+/***************************************************************************
+* mddr calibration
+****************************************************************************/
+
 uint32_t square_image[SQUARE_LENGTH][SQUARE_LENGTH];
 uint32_t pattern[SQUARE_LENGTH] =
 {
@@ -446,8 +451,107 @@ calibration:
 	}
 }
 
+
+/***************************************************************************
+* mddr initialize 
+****************************************************************************/
+
 void mddr_core_init(uint32_t size)
 {
+#if   defined(CFG_DDR2)
+	write64(0x3ffbe000, 0x0101010000000100ULL);
+	write64(0x3ffbe008, 0x0000010100000100ULL);
+	write64(0x3ffbe010, 0x0001000100000000ULL);
+	write64(0x3ffbe018, 0x0101000000010000ULL);
+	write64(0x3ffbe020, 0x0002020000000101ULL);
+	write64(0x3ffbe028, 0x0000030200000003ULL);
+	write64(0x3ffbe030, 0x0204030300000001ULL);
+	write64(0x3ffbe038, 0x0000020f07080a0fULL);
+	write64(0x3ffbe040, 0x0f02000000040800ULL);
+	write64(0x3ffbe048, 0x0000000000000000ULL);
+	write64(0x3ffbe050, 0x0000000000000000ULL);
+	write64(0x3ffbe058, 0x00040b0000000000ULL);
+	write64(0x3ffbe060, 0x0000000005081b00ULL);
+	write64(0x3ffbe068, 0x0000ffff00000000ULL);
+	write64(0x3ffbe070, 0x0000000000000000ULL);
+	write64(0x3ffbe078, 0x002548eb000200c8ULL);
+	write64(0x3ffbe080, 0x00000036000000c8ULL);
+	write64(0x3ffbe088, 0x0000000000000000ULL);
+	write64(0x3ffbe090, 0x0000000000000000ULL);
+	write64(0x3ffbe098, 0x0000000000000000ULL);
+	write64(0x3ffbe0a0, 0x0000000000000000ULL);
+	write64(0x3ffbe0a8, 0x0000000000000000ULL);
+	write64(0x3ffbe0b0, 0x0000000000000000ULL);
+	write64(0x3ffbe0b8, 0x0000000000000000ULL);
+	write64(0x3ffbe0c0, 0x0700010002000300ULL);
+	write64(0x3ffbe0c8, 0x081b081b02000200ULL);
+	write64(0x3ffbe0d0, 0x000000000000081bULL);
+	write64(0x3ffbe0d8, 0x20059d2120059d21ULL);
+	write64(0x3ffbe0e0, 0x20059d2120059d21ULL);
+	write64(0x3ffbe0e8, 0x00059f0900059f09ULL);
+	write64(0x3ffbe0f0, 0x00059f0900059f09ULL);
+	write64(0x3ffbe0f8, 0x0000000000000000ULL);
+	write64(0x3ffbe100, 0x0000000000000000ULL);
+	write64(0x3ffbe108, 0xf4013b27000f1100ULL);
+	write64(0x3ffbe110, 0xf4013b27f4013b27ULL);
+	write64(0x3ffbe118, 0x26c002c0f4013b27ULL);
+	write64(0x3ffbe120, 0x26c002c026c002c0ULL);
+	write64(0x3ffbe128, 0x0000000526c002c0ULL);
+	write64(0x3ffbe130, 0x0000000000000000ULL);
+	write64(0x3ffbe138, 0x0000000000000000ULL);
+	write64(0x3ffbe140, 0x0000000000000000ULL);
+	write64(0x3ffbe148, 0x0000000000000000ULL);
+	write64(0x3ffbe150, 0x0000000000000000ULL);
+	write64(0x3ffbe158, 0x0000000000000000ULL);
+	write64(0x3ffbe160, 0x0000000000000000ULL);
+	write64(0x3ffbe168, 0x0000000000000000ULL);
+	write64(0x3ffbe170, 0x0000000000000000ULL);
+	write64(0x3ffbe178, 0x0000000000000000ULL);
+	write64(0x3ffbe180, 0x0000000000000000ULL);
+	write64(0x3ffbe188, 0x0000000000000000ULL);
+	write64(0x3ffbe190, 0x0000000000000000ULL);
+	write64(0x3ffbe198, 0x0000000000000000ULL);
+	write64(0x3ffbe1a0, 0x0000000000000000ULL);
+	write64(0x3ffbe1a8, 0x0000000000000000ULL);
+	write64(0x3ffbe1b0, 0x0000000000000000ULL);
+	write64(0x3ffbe1b8, 0x0000000000000000ULL);
+	write64(0x3ffbe1c0, 0x0000000000000000ULL);
+	write64(0x3ffbe1c8, 0x0000000000000000ULL);
+	write64(0x3ffbe1d0, 0x0000000000000000ULL);
+	write64(0x3ffbe1d8, 0x0000000000000000ULL);
+	write64(0x3ffbe1e0, 0x0000000000000000ULL);
+	write64(0x3ffbe1e8, 0x0000000000000000ULL);
+	write64(0x3ffbe1f0, 0x0000000000000000ULL);
+	write64(0x3ffbe1f8, 0x0000000000000000ULL);
+	write64(0x3ffbe200, 0x0000000000000000ULL);
+	write64(0x3ffbe208, 0x0000000000000000ULL);
+	write64(0x3ffbe210, 0x0000000000000000ULL);
+	write64(0x3ffbe218, 0x0000000000000000ULL);
+	write64(0x3ffbe220, 0x0000000000000000ULL);
+	write64(0x3ffbe228, 0x0000000000000000ULL);
+	write64(0x3ffbe230, 0x0000000000000000ULL);
+	write64(0x3ffbe238, 0x0000000000000000ULL);
+	write64(0x3ffbe240, 0x0000000000000000ULL);
+	write64(0x3ffbe248, 0x0000000000000000ULL);
+	write64(0x3ffbe250, 0x0000000000000000ULL);
+	write64(0x3ffbe258, 0x0000000000000000ULL);
+	write64(0x3ffbe260, 0x0202000102030100ULL);
+	write64(0x3ffbe268, 0x0403030001000102ULL);
+	write64(0x3ffbe270, 0x0000040003020504ULL);
+	write64(0x3ffbe278, 0x0000000000000000ULL);
+	write64(0x3ffbe280, 0x081b081b081b0000ULL);
+	write64(0x3ffbe288, 0x0004000406430643ULL);
+	write64(0x3ffbe290, 0x0101000000000000ULL);
+	write64(0x3ffbe298, 0x0001000002010201ULL);
+	write64(0x3ffbe2a0, 0x00000000220e0000ULL);
+	write64(0x3ffbe2a8, 0x00000000006b0000ULL);
+	write64(0x3ffbe2b0, 0x0000000000000000ULL);
+	write64(0x3ffbe2b8, 0x0000000000000000ULL);
+	write64(0x3ffbe2c0, 0x0000000000000000ULL);
+	write64(0x3ffbe2c8, 0x0000000000000000ULL);
+
+	write64(0x3ffbe018, 0x0101010000010000ULL);
+#else
 	write64(0x3ffbe000, 0x0101010000000101ULL);
 	write64(0x3ffbe008, 0x0001010100000100ULL);
 	write64(0x3ffbe010, 0x0001000100000000ULL);
@@ -542,8 +646,7 @@ void mddr_core_init(uint32_t size)
 
 	write64(0x3ffbe018, 0x0101010000010001ULL);
 	mdelay(10);
-		
-
+#endif		
 }
 
 #define MDDR_128M		(128 * 1024 * 1024)
@@ -622,6 +725,7 @@ static void mddr_init(struct boot_parameter *b_param)
 	}
 
 	printf("MDDR SIZE = %d MB\n", (1 << size) * 64);
+
 	mddr_core_init(size);
 
 	if (b_param->mddr_data_send) {
@@ -642,18 +746,70 @@ static void mddr_init(struct boot_parameter *b_param)
         } else {
                 memset(fd_param, 0, sizeof(struct boot_parameter));
         }
-
+#if 0
 	mddr_self_refresh();
-
+#endif
 	/* disable & clear MME irqs */
 	write64(0x3fe00048, 0x120000000000ff00LL);
 
 	return;
 }
 
+/***************************************************************************
+* mddr initialize 
+****************************************************************************/
+static void sdram_core_init(uint32_t size)
+{
+        write64(0x3ffbe000, 0x0101010000000100ULL);     //DENALI_CTL_00 
+        write64(0x3ffbe008, 0x0000010100000100ULL);      //{0x3ffbe008                 
+        write64(0x3ffbe010, 0x0001000100000000ULL);     //DENALI_CTL_02           
+        write64(0x3ffbe018, 0x0101000000010000ULL);     //DENALI_CTL_03           
+        write64(0x3ffbe020, 0x0002020300010100ULL);     //DENALI_CTL_04       
+        write64(0x3ffbe028, 0x0003020100000003ULL);     //DENALI_CTL_05          
+        write64(0x3ffbe030, 0x0102020000000000ULL);     //DENALI_CTL_06
+        write64(0x3ffbe038, 0x0000020f06080a0fULL);     //DENALI_CTL_07   
+        write64(0x3ffbe040, 0x0a02000000030500ULL);
+        write64(0x3ffbe048, 0x0000007f16161616ULL);     //DENALI_CTL_09              
+        write64(0x3ffbe050, 0x0f0d0d0d0d010000ULL);     //DENALI_CTL_10      
+        write64(0x3ffbe058, 0x1103070000493600ULL);     //DENALI_CTL_11           
+        write64(0x3ffbe060, 0x0000000000050e01ULL);     //DENALI_CTL_12               
+        write64(0x3ffbe068, 0x0000ffff00000000ULL);
+        write64(0x3ffbe070, 0x0000000000000000ULL);
+        write64(0x3ffbe078, 0x00144e1600010000ULL);     //DENALI_CTL_15                 
+        write64(0x3ffbe080, 0x0000001100000014ULL);     //DENALI_CTL_16
+        write64(0x3ffbe088, 0x0000000000000000ULL);     //DENALI_CTL_17
+        write64(0x3ffbe090, 0x0000000000000000ULL);     //DENALI_CTL_18
+        write64(0x3ffbe098, 0x0000000000000000ULL);     //DENALI_CTL_19
+        write64(0x3ffbe0a0, 0x0000000000000000ULL);     //DENALI_CTL_20
+        write64(0x3ffbe0a8, 0x0000000000000000ULL);     //DENALI_CTL_21
+        write64(0x3ffbe0b0, 0x0000000000000000ULL);     //DENALI_CTL_22
+        write64(0x3ffbe0b8, 0x0000000000000000ULL);     //DENALI_CTL_23
+        write64(0x3ffbe0c0, 0x0201000100000000ULL);     //DENALI_CTL_24
+        write64(0x3ffbe0c8, 0x0301000001000001ULL);     //DENALI_CTL_25
+        write64(0x3ffbe0d0, 0x0000000002000103ULL);     //DENALI_CTL_26
+        write64(0x3ffbe0d8, 0x0032000000000000ULL);     //DENALI_CTL_27
+        write64(0x3ffbe0e0, 0x0000000000000032ULL);     //DENALI_CTL_28
+        write64(0x3ffbe0e8, 0x0000000000000000ULL);     //DENALI_CTL_29
+        write64(0x3ffbe018, 0x0101010000010000ULL);     //DENALI_CTL_03
+
+        mdelay(10);
+}
+
+
 void memory_init(struct boot_parameter *b_param)
 {
+#if   defined(CFG_SDRAM)
+	topctl_write_reg(TOPCTL10, topctl_read_reg(TOPCTL10) | (1 << 31));
+
+	size = MDDR_128;
+	printf("SDRAM SIZE = %d MB\n", (1 << size) * 64);
+	sdram_core_init(size);
+#else 
 	mddr_init(b_param);
+#endif
+
 	return;
 }
+
+
 

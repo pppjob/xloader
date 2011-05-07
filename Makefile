@@ -140,6 +140,30 @@ cayman20_config :    unconfig
 	@./mkconfig $(@:_config=)  arm atxx cayman20 augusta at6600;	\
 	touch ./include/config.h
 
+g20_config :    unconfig
+	@./mkconfig cayman20 arm   atxx cayman20 augusta at6600;	\
+	touch ./include/config.h
+
+miracle_smt_config :    unconfig
+	@./mkconfig cayman20 arm   atxx cayman20 augusta at6600;	\
+	touch ./include/config.h
+
+t3c_config :    unconfig
+	@./mkconfig cayman20 arm   atxx cayman20 augusta at6600;	\
+	touch ./include/config.h
+
+atb9004_config :    unconfig
+	@./mkconfig $(@:_config=)  arm atxx atb9004 augusta at7700a0;	\
+	touch ./include/config.h
+
+fpga7700b0_config :    unconfig
+	@./mkconfig $(@:_config=)  arm atxx fpga7700b0 augusta at7700b0;\
+	touch ./include/config.h
+
+atb1004_config :    unconfig
+	@./mkconfig $(@:_config=)  arm atxx atb1004 augusta at7700b0;\
+	touch ./include/config.h
+
 #########################################################################
 ## OMAP1 (ARM92xT) Systems
 #########################################################################

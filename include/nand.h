@@ -5,8 +5,8 @@
  * is supported now. If you add a chip with bigger oobsize/page
  * adjust this accordingly.
  */
-#define NAND_MAX_OOBSIZE	218
-#define NAND_MAX_PAGESIZE	4096
+#define NAND_MAX_OOBSIZE	512
+#define NAND_MAX_PAGESIZE	8192
 /*
 * Constants for oob configuration
 */

@@ -73,7 +73,7 @@ int clk_set_parent(struct clk *clk, struct clk *parent);
 int atxx_register_clock(struct clk *clk);
 void dump_clock(void);
 void regulate_clock(void);
-void at6600_clock_init(void);
+void atxx_clock_init(void);
 void set_board_default_clock(struct clock_default_setting *pll,
 				struct clock_default_setting *div, 
 				uint32_t pll_size, uint32_t div_size);

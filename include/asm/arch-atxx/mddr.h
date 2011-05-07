@@ -31,7 +31,6 @@ enum mddr_size {
 	MDDR_INVALIDATE,
 };
 
-void mddr_init(struct boot_parameter *);
-int mddr_calibration(uint8_t*);
+void memory_init(struct boot_parameter *);
 
 #endif /* __ASM_ARCH_MDDR_H */

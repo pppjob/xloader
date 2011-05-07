@@ -34,12 +34,12 @@ const char *pll_names[] = {
 	"pll3",
 };
 
-const char *div_names[] = {
+const char *div_d_names[] = {
 	"arm",
-	"dsphclk",
+	"pcm",
 	"comm",
 	"uart",
-	"ms",
+	"mphaxi",
 	"camclk",
 	"camera",
 	"vpclk",
@@ -66,12 +66,26 @@ const char *div_names[] = {
 	"i2s2_s0",
 	"i2s2",
 	"vsclk",
-	"d_not_use0",
+	"sarc",
+	"parc",
+	"not_used",
+	"not_used",
+	"not_used",
+	"not_used",
+	"not_used",
+	"not_used",
+	"not_used",
+};
+
+const char *div_a_names[] = {
 	"usb0",
 	"iqadc_s0",
 	"vgaclk",
 	"tvclk",
 	"iqadc",
+	"not_used",
+	"not_used",
+	"not_used",
 };
 
 const char *app_names[] = {
@@ -112,13 +126,18 @@ const int cascaded_div[] = {
 	24, 25,		/* i2s0_s0, i2s0 */
 	26, 27,		/* i2s1_s0, i2s1 */
 	28, 29,		/* i2s2_s0, i2s2 */
-	33, 36,		/* iqadc_s0, iqadc */
+	65, 68,		/* iqadc_s0, iqadc */
 };
 
 #define	PLL_COUNT	ARRAY_SIZE(pll_names)
-#define	DIV_COUNT	ARRAY_SIZE(div_names)
+#define	DIV_D_COUNT	ARRAY_SIZE(div_d_names)
+#define	DIV_A_COUNT	ARRAY_SIZE(div_a_names)
+#define	DIV_COUNT	(DIV_D_COUNT + DIV_A_COUNT)
 #define	CASDIV_COUNT	ARRAY_SIZE(cascaded_div)
 
+#define	DIV_A_OFFSET	64
+
+struct clk clk_ext;
 struct clk clk_xtal;
 struct clk clk_pll[PLL_COUNT];
 struct clk clk_div[DIV_COUNT];
@@ -141,14 +160,16 @@ static int atxx_xtal_is_enable(struct clk *clk)
 /* PLL control register field offset */
 #define	PLL_PD			0	/* Powerdown PLL */
 #define	PLL_BP			1	/* Bypass PLL */
-#define	PLL_BS			2	/* Band Selection */
-#define	PLL_OD			4	/* Output Divider Control */
-#define	PLL_F			8	/* Feedback Divider Control */
-#define	PLL_R			16	/* Input Divider Control */
+#define	PLL_VCO			2	/* Band Selection */
+#define	PLL_ODIV		4	/* Output Divider Control */
+#define	PLL_FDIV		8	/* Feedback Divider Control */
+#define	PLL_SEL_13M		16	/* Input Divider Control */
+#define	PLL_QP			17	
+#define	PLL_D2C			19	
+#define	PLL_FORMAT		31	
 
-#define	PLL_OD_MASK		0x03
-#define	PLL_F_MASK		0x7f
-#define	PLL_R_MASK		0x1f
+#define	PLL_ODIV_MASK		0x03
+#define	PLL_FDIV_MASK		0x7f
 
 /* PLL setting for different frequency */
 struct pll_set {
@@ -158,23 +179,23 @@ struct pll_set {
 
 static struct pll_set pll_table[] = {
 	{
-		0   * MHZ, (1 << PLL_PD),
+		0   * MHZ, (1 << PLL_FORMAT) | (1 << PLL_PD),
 	}, {
-		26  * MHZ, (1 << PLL_BP),
+		26  * MHZ, (1 << PLL_FORMAT) | (1 << PLL_BP),
 	}, {
-		312 * MHZ, (1 << PLL_BS) | (11 << PLL_F),
+		312 * MHZ, (1 << PLL_FORMAT) | (2 << PLL_ODIV) | (96 << PLL_FDIV),
 	}, {
-		455 * MHZ, (1 << PLL_BS) | (34 << PLL_F) |(1 << PLL_R),
+		455 * MHZ, (1 << PLL_FORMAT) | (0 << PLL_ODIV) | (35 << PLL_FDIV),
 	}, {
-		481 * MHZ, (1 << PLL_BS) | (36 << PLL_F) | (1 << PLL_R),
+		481 * MHZ, (1 << PLL_FORMAT) | (1 << PLL_ODIV) | (74 << PLL_FDIV),
 	}, {
-		624 * MHZ, (2 << PLL_BS) | (23 << PLL_F),
+		624 * MHZ, (1 << PLL_FORMAT) | (1 << PLL_ODIV) | (96 << PLL_FDIV),
 	}, {
-		702 * MHZ, (2 << PLL_BS) | (26 << PLL_F),
+		702 * MHZ, (1 << PLL_FORMAT) | (0 << PLL_ODIV) | (54 << PLL_FDIV),
 	}, {
-		728 * MHZ, (2 << PLL_BS) | (27 << PLL_F),
+		728 * MHZ, (1 << PLL_FORMAT) | (0 << PLL_ODIV) | (56 << PLL_FDIV),
 	}, {
-		806 * MHZ, (2 << PLL_BS) | (30 << PLL_F),
+		806 * MHZ, (1 << PLL_FORMAT) | (0 << PLL_ODIV) | (62 << PLL_FDIV),
 	},
 };
 #define	PLL_TABLE_COUNT		ARRAY_SIZE(pll_table)
@@ -191,7 +212,7 @@ static int atxx_pll_enable(struct clk *clk, int enable)
 		pllreg |= 1 << PLL_PD;
 
 	writel(pllreg, PLLCTLR(clk->index));
-
+#if 0
 	/* To work around an asic bug: if PLL2/PLL3 is powered-down,
 	 * needs to rewrite PLL1 regs, in case sleep can't be waked up */
 	if (enable == 0 && clk->index != 0) {
@@ -199,7 +220,7 @@ static int atxx_pll_enable(struct clk *clk, int enable)
 		pllreg &= ~(1 << PLL_PD);
 		writel(pllreg, PLLCTLR(0));
 	}
-
+#endif
 	return 0;
 }
 
@@ -258,9 +279,9 @@ static unsigned long atxx_pll_get_rate(struct clk *clk)
 		return freq;
 	}
 
-	freq *= ((pllreg >> PLL_F) & PLL_F_MASK) + 1;
-	freq /= ((pllreg >> PLL_R) & PLL_R_MASK) + 1;
-	freq >>= ((pllreg >> PLL_OD) & PLL_OD_MASK);
+	freq /= 2;
+	freq *= (pllreg >> PLL_FDIV) & PLL_FDIV_MASK;
+	freq >>= ((pllreg >> PLL_ODIV) & PLL_ODIV_MASK);
 
 	return freq;
 }
@@ -273,7 +294,7 @@ static unsigned int atxx_pll_get_reg(struct clk *clk)
 /* ****************************************************************** */
 
 /* Divider control registers, 0 - 36, 0x100 - 0x190  */
-#define	DIVCTLR(n)		(ATXX_PM_UNIT_BASE + 0x100 + 4 * (n))
+#define	DIVCTLR(n)		(ATXX_PM_UNIT_BASE + 0x200 + 4 * (n))
 
 /* Divider field offset */
 #define	DIV_EN			0
@@ -298,8 +319,7 @@ static struct clk *atxx_div_get_parent(struct clk *clk)
 	src = (divreg >> DIV_SRC) & DIV_SRC_MASK;
 
 	if (ext) {
-		printf("Use unknown external clock!!\n");
-		return NULL;
+		return &clk_ext;
 	}
 	if (src == 0) {
 		return &clk_xtal;
@@ -752,6 +772,12 @@ void atxx_clock_init(void)
 	int i;
 
 	/* register xtal clock */
+	clk_ext.parent = NULL;
+	clk_ext.name = "extcrystal";
+	clk_ext.rate = CRYSTAL_FREQ_HZ;
+	clk_ext.is_enable = atxx_xtal_is_enable;
+	
+	/* register xtal clock */
 	clk_xtal.parent = NULL;
 	clk_xtal.name = "xtal";
 	clk_xtal.rate = CRYSTAL_FREQ_HZ;
@@ -776,8 +802,13 @@ void atxx_clock_init(void)
 
 	/* register div clocks */
 	for(i = 0; i < DIV_COUNT; i++) {
-		clk_div[i].name		= div_names[i];
-		clk_div[i].index	= i;
+		if (i < DIV_D_COUNT) {
+			clk_div[i].name		= div_d_names[i];
+			clk_div[i].index	= i;
+		} else {
+			clk_div[i].name		= div_a_names[i - DIV_D_COUNT];
+			clk_div[i].index	= i - DIV_D_COUNT + DIV_A_OFFSET;
+		}
 		clk_div[i].parent	= atxx_div_get_parent(&clk_div[i]);
 		clk_div[i].set_parent	= atxx_div_set_parent;
 		clk_div[i].enable	= atxx_div_enable;
@@ -795,6 +826,5 @@ void atxx_clock_init(void)
 		clk_div[cascaded_div[i + 1]].parent	= &clk_div[cascaded_div[i]];
 		clk_div[cascaded_div[i + 1]].set_parent	= NULL;
 	}
-
 }
 
