@@ -60,11 +60,10 @@ uint32_t main_course(char *boot_dev_name)
 	struct boot_parameter *parameter = &b_param;
 	boot_info_t *info = &boot_info;
         unsigned int hwcfg, swcfg;
-#if 0
-	printf("pmu init.\n");
+
 	i2c_at2600_init();
 	at2600_set_default_power_supply();
-#endif	
+
 	/* read config data area for clock information */
 	ret = env_init();
 	/* enviroment exist, follow its setting */

@@ -82,4 +82,7 @@
 #define CFG_NAND
 #define CFG_UDELAY
 
+/* I2C config */
+#define CONFIG_PM_AT2600
+
 #endif /* __CONFIG_H */
