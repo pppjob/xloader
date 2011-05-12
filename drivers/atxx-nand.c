@@ -815,8 +815,8 @@ int atxx_nd_scan(struct nand_info *nd, int maxchips)
 	nd->ecc.steps = nd->writesize / nd->ecc.size;
 	nd->ecc.total = nd->ecc.steps * nd->ecc.bytes;
 
-	/*we need 3 bytes for badblock in the beginning of oob*/
-	if ((nd->ecc.bytes + 3) > nd->oobsize/nd->ecc.steps) {
+	/*we need 1 bytes for badblock in the beginning of oob*/
+	if ((nd->ecc.bytes + 1) > nd->oobsize/nd->ecc.steps) {
 		printf("Not enough oob space for ecc!!!\n");
 		atxx_nd_select_chip(nd, -1);
 		return -ENOSPC;
