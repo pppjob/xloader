@@ -196,6 +196,8 @@ static struct pll_set pll_table[] = {
 		728 * MHZ, (1 << PLL_FORMAT) | (0 << PLL_ODIV) | (56 << PLL_FDIV),
 	}, {
 		806 * MHZ, (1 << PLL_FORMAT) | (0 << PLL_ODIV) | (62 << PLL_FDIV),
+	}, {
+		988 * MHZ, (1 << PLL_FORMAT) | (0 << PLL_ODIV) | (76 << PLL_FDIV),
 	},
 };
 #define	PLL_TABLE_COUNT		ARRAY_SIZE(pll_table)
@@ -524,6 +526,7 @@ static int clk_set_arm(unsigned long clkv)
 
 	switch (clkv) {
 		case 156000000:
+		case 208000000:
 		case 312000000:
 		case 624000000:
 			clkp = clk_get ("pll1");
@@ -531,15 +534,21 @@ static int clk_set_arm(unsigned long clkv)
 			ret = clk_set_parent (clk, clkp);
 			ret = clk_set_rate (clk, clkv);
 			break;
-		case 702000000:
+		case 988000000:
+		case 494000000:
 			clkp = clk_get ("pll2");
 			ret = clk_enable (clkp);
 			ret = clk_set_parent (clk, clkp);
 			ret = clk_set_rate (clk, clkv);
 			break;
+		case 806000000:
+			clkp = clk_get ("pll3");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
 		default:
-			printf("Not support, arm clock only: 312M "
-				"624M 806M\n");
+			printf("ARM clk Not support, \n");
 			break;
 		}
 	return ret;
@@ -548,6 +557,7 @@ static int clk_set_arm(unsigned long clkv)
 static int clk_set_axi (unsigned long clkv)
 {
 	struct clk *clk;
+	struct clk *clkp;
 	unsigned long  old_clkv;
 	int ret;
 
@@ -556,7 +566,27 @@ static int clk_set_axi (unsigned long clkv)
 	if (old_clkv == clkv)
 		return 0;
 
-	ret = clk_set_rate (clk, clkv);
+	switch (clkv) {
+		case 156000000:
+		case 208000000:
+		case 312000000:
+		case 624000000:
+			clkp = clk_get ("pll1");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		case 403000000:
+		case 806000000:
+			clkp = clk_get ("pll3");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		default:
+			printf("AXI clk Not support, \n");
+			break;
+		}
 
 	return ret;
 }
@@ -574,17 +604,31 @@ static int clk_set_mddr (unsigned long clkv)
 		return 0;
 
 	switch (clkv) {
-		case 175500000:
-                        clkp = clk_get ("pll2");
+		case 156000000:
+		case 312000000:
+		case 208000000:
+		case 624000000:
+			clkp = clk_get ("pll1");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		case 165000000:
+		case 198000000:
+			clkp = clk_get ("pll2");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		case 403000000:
+			clkp = clk_get ("pll3");
 			ret = clk_enable (clkp);
 			ret = clk_set_parent (clk, clkp);
 			ret = clk_set_rate (clk, clkv);
 			break;
 		default:
-			clkp = clk_get ("pll1");
-			ret = clk_enable (clkp);
-			ret = clk_set_parent (clk, clkp);
-			ret = clk_set_rate (clk, clkv);
+			printf("MDDR clk Not support, \n");
+			break;
 	}
 
 	return ret;
@@ -619,17 +663,32 @@ static int clk_set_dspcore (unsigned long clkv)
 		return 0;
 
 	switch (clkv) {
-		case 455000000:
+		case 156000000:
+		case 312000000:
+		case 208000000:
+		case 624000000:
+			clkp = clk_get ("pll1");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		case 988000000:
+		case 494000000:
+			clkp = clk_get ("pll2");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		case 403000000:
+		case 806000000:
 			clkp = clk_get ("pll3");
 			ret = clk_enable (clkp);
 			ret = clk_set_parent (clk, clkp);
 			ret = clk_set_rate (clk, clkv);
 			break;
 		default:
-			clkp = clk_get ("pll1");
-			ret = clk_enable (clkp);
-			ret = clk_set_parent (clk, clkp);
-			ret = clk_set_rate (clk, clkv);
+			printf("DSP clk Not support, \n");
+			break;
 	}
 
 	return ret;
@@ -638,6 +697,7 @@ static int clk_set_dspcore (unsigned long clkv)
 static int clk_set_vpclk (unsigned long clkv)
 {
 	struct clk *clk;
+	struct clk *clkp;
 	unsigned long  old_clkv;
 	int ret;
 
@@ -646,7 +706,33 @@ static int clk_set_vpclk (unsigned long clkv)
 	if (old_clkv == clkv)
 		return 0;
 
-	ret = clk_set_rate (clk, clkv);
+	switch (clkv) {
+		case 156000000:
+		case 312000000:
+		case 208000000:
+		case 624000000:
+			clkp = clk_get ("pll1");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		case 494000000:
+			clkp = clk_get ("pll2");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		case 403000000:
+		case 806000000:
+			clkp = clk_get ("pll3");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		default:
+			printf("VP clk Not support, \n");
+			break;
+	}
 
 	return ret;
 }
@@ -654,6 +740,7 @@ static int clk_set_vpclk (unsigned long clkv)
 static int clk_set_gclk (unsigned long clkv)
 {
 	struct clk *clk;
+	struct clk *clkp;
 	unsigned long  old_clkv;
 	int ret;
 
@@ -662,7 +749,33 @@ static int clk_set_gclk (unsigned long clkv)
 	if (old_clkv == clkv)
 		return 0;
 
-	ret = clk_set_rate (clk, clkv);
+	switch (clkv) {
+		case 156000000:
+		case 312000000:
+		case 208000000:
+		case 624000000:
+			clkp = clk_get ("pll1");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		case 494000000:
+			clkp = clk_get ("pll2");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		case 403000000:
+		case 806000000:
+			clkp = clk_get ("pll3");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		default:
+			printf("gclk Not support, \n");
+			break;
+	}
 
 	return ret;
 }
@@ -670,6 +783,7 @@ static int clk_set_gclk (unsigned long clkv)
 static int clk_set_vsclk (unsigned long clkv)
 {
 	struct clk *clk;
+	struct clk *clkp;
 	unsigned long  old_clkv;
 	int ret;
 
@@ -678,7 +792,33 @@ static int clk_set_vsclk (unsigned long clkv)
 	if (old_clkv == clkv)
 		return 0;
 
-	ret = clk_set_rate (clk, clkv);
+	switch (clkv) {
+		case 156000000:
+		case 312000000:
+		case 208000000:
+		case 624000000:
+			clkp = clk_get ("pll1");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		case 494000000:
+			clkp = clk_get ("pll2");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		case 403000000:
+		case 806000000:
+			clkp = clk_get ("pll3");
+			ret = clk_enable (clkp);
+			ret = clk_set_parent (clk, clkp);
+			ret = clk_set_rate (clk, clkv);
+			break;
+		default:
+			printf("vsclk Not support, \n");
+			break;
+	}
 
 	return ret;
 }

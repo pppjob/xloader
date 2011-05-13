@@ -22,27 +22,27 @@
 
 /* array order is same as struct div_name */
 struct clock_default_setting div_setting[] = {
-	{PLL1,    1, 312 * MHZ},	/*"arm" */
+	{PLL3,    1, 806 * MHZ},	/*"arm" */
 	{UNCHANGED,1, UNCHANGED},	/*"pcm" */
-	{PLL1,    1, 52 * MHZ},		/*"comm" TODO: dsp */
+	{PLL1,    0, 52 * MHZ},		/*"comm" TODO: dsp */
 	{PLL1,    1, 57 * MHZ},		/*"uart" */
 	{PLL1,    0, 52 * MHZ},		/*"mphaxi"*/
 	{PLL1,    0, 52 * MHZ},		/*"camclk"*/
 	{PLL1,    0, 26 * MHZ},		/*"camera"*/
 	{PLL1,    1, 156 * MHZ},	/*"vpclk"*/
-	{PLL1,    1, 312 * MHZ},	/*"dspcore"*/
-	{PLL1,    1, 156 * MHZ},	/*"axi"*/
+	{PLL2,    1, 494 * MHZ},	/*"dspcore"*/
+	{PLL1,    1, 312 * MHZ},	/*"axi"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"spi0"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"spi1"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"spi2"*/
 	{CRYSTAL, 1, UNCHANGED},	/*"sd"*/
 	{PLL1,    0, 48 * MHZ},		/*"usb1"*/
 	{PLL1,    0, 48 * MHZ},		/*"bt"*/
-	{PLL1,    1, 156 * MHZ},	/*"proc arc"*/
+	{PLL1,    1, 104 * MHZ},	/*"proc arc"*/
 	{PLL1,    1, 104 * MHZ},	/*"app"*/
-	{PLL1,    1, 156 * MHZ},	/*"gclk" graphic mm_top TODO */
+	{PLL1,    1, 312 * MHZ},	/*"gclk" graphic mm_top TODO */
 	{CRYSTAL, 1, UNCHANGED},	/*"pclk" apb clock */
-	{PLL1,    1, 312 * MHZ},	/*"mddr"*/
+	{PLL2,    1, 198 * MHZ},	/*"mddr"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"gps2"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"hdmi_s0"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"hdmi"*/
@@ -52,13 +52,30 @@ struct clock_default_setting div_setting[] = {
 	{CRYSTAL, 0, UNCHANGED},	/*"i2s1"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"i2s2_s0"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"i2s2"*/
-	{PLL1,    1, 156 * MHZ},	/*"vsclk" TODO */
+	{PLL3,    1, 403 * MHZ},	/*"vsclk" TODO */
+	{PLL1,    1, 208 * MHZ},	/*"sarc */
+	{PLL1,    1, 208 * MHZ},	/*"parc */
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{PLL1,    1, 24 * MHZ},		/*"usb0"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"vgaclk"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
+	{UNCHANGED, 0, UNCHANGED},	/*"not used"*/
 };
 
 struct clock_default_setting pll_setting[] = {
 	{UNCHANGED, 1, 624 * MHZ},	/*"pll1"*/
-	{UNCHANGED, 1, 702 * MHZ},	/*"pll2"*/
-	{UNCHANGED, 1, 455 * MHZ},	/*"pll3"*/
+	{UNCHANGED, 1, 988 * MHZ},	/*"pll2"*/
+	{UNCHANGED, 1, 806 * MHZ},	/*"pll3"*/
 	
 };
 #define	PLL_DEFSET_COUNT		ARRAY_SIZE(pll_setting)
