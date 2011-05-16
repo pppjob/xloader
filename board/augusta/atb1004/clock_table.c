@@ -24,7 +24,7 @@
 struct clock_default_setting div_setting[] = {
 	{PLL3,    1, 806 * MHZ},	/*"arm" */
 	{UNCHANGED,1, UNCHANGED},	/*"pcm" */
-	{PLL1,    0, 52 * MHZ},		/*"comm" TODO: dsp */
+	{PLL1,    1, 52 * MHZ},		/*"comm" TODO: dsp */
 	{PLL1,    1, 57 * MHZ},		/*"uart" */
 	{PLL1,    0, 52 * MHZ},		/*"mphaxi"*/
 	{PLL1,    0, 52 * MHZ},		/*"camclk"*/
