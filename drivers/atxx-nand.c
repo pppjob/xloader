@@ -325,6 +325,10 @@ static uint32_t atxx_nd_identify(struct nand_info *nd)
 	io_data = atxx_nd_read_reg(REG_NFC_SOFT_PIN2);
 
 	printf("nand io data: 0x%02x\n", io_data);
+#if defined(CONFIG_AT6600)
+	if((io_data & 0xff) == 0)
+		return 1;
+#endif
 	/*identify pagesize/blocksize.*/
 	value = io_data & SIZE_BITS;
 	switch (value)
@@ -465,6 +469,219 @@ static uint32_t atxx_nd_identify(struct nand_info *nd)
 
 static void atxx_nd_set_eccmask(void)
 {
+#if defined(CONFIG_AT6600)
+		switch (ecc_number) {
+		case 1:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0xf982);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0xf982);
+			break;
+		case 2:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x77276029);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0x0d);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x77276029);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0x0d);
+			break;
+		case 3:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x9f3da90f);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0x000692d7);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x9f3da90f);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0x000692d7);
+			break;
+		case 4:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x10a8a7b2);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0x17ec9f0c);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0xbe);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x10a8a7b2);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0x17ec9f0c);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0xbe);
+			break;
+		case 5:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x2e18c4b8);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0xaef5928a);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0x00656b40);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x2e18c4b8);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0xaef5928a);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0x00656b40);
+			break;
+		case 6:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0xb0997909);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0xec17d82e);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0x792279f0);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK3, 0xffffff07);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0xb0997909);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0xec17d82e);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0x792279f0);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK3, 0xffffff07);
+			break;
+		case 7:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0xfc9fcddc);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0x2897fd58);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0xea9ceebc);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK3, 0xf435c158);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0xfc9fcddc);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0x2897fd58);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0xea9ceebc);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK3, 0xf435c158);
+			break;
+		case 8:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x1c9aea52);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0x1f9b0e16);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0x20ffc948);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK3, 0xa6d7530a);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK4, 0xffffd0d5);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x1c9aea52);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0x1f9b0e16);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0x20ffc948);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK3, 0xa6d7530a);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK4, 0xffffd0d5);
+			break;
+		case 9:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x6cb038b8);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0x293b1218);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0x2996988b);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK3, 0x66eef7d1);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK4, 0x2f5b8752);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK5, 0xfffffffc);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK6, 0xffffffff);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK7, 0xffffffff);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x6cb038b8);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0x293b1218);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0x2996988b);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK3, 0x66eef7d1);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK4, 0x2f5b8752);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK5, 0xfffffffc);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK6, 0xffffffff);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK7, 0xffffffff);
+			break;
+		case 10:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x701d2365);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0xe21a68ee);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0xfd727776);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK3, 0x4f2a8861);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK4, 0x8494fd61);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK5, 0xfffb9532);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK6, 0xffffffff);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK7, 0xffffffff);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x701d2365);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0xe21a68ee);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0xfd727776);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK3, 0x4f2a8861);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK4, 0x8494fd61);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK5, 0xfffb9532);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK6, 0xffffffff);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK7, 0xffffffff);
+			break;
+		case 11:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x9c8f5ec6);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0x60408888);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0x7d8d244b);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK3, 0x0481fcd2);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK4, 0x1f80061c);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK5, 0x03c4c03c);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK6, 0xffffffd7);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK7, 0xffffffff);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x9c8f5ec6);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0x60408888);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0x7d8d244b);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK3, 0x0481fcd2);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK4, 0x1f80061c);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK5, 0x03c4c03c);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK6, 0xffffffd7);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK7, 0xffffffff);
+			break;
+		case 12:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x18565d76);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0x118deeed);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0xaace25cc);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK3, 0xefb49fe8);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK4, 0x03380e2e);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK5, 0x610e910f);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK6, 0xffe818b8);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK7, 0xffffffff);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x18565d76);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0x118deeed);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0xaace25cc);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK3, 0xefb49fe8);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK4, 0x03380e2e);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK5, 0x610e910f);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK6, 0xffe818b8);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK7, 0xffffffff);
+			break;
+		case 13:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x5afeedfe);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0x2552f26f);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0x23a3ffa6);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK3, 0x3d7088c9);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK4, 0xc936d959);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK5, 0x0ef6ea69);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK6, 0xdb7b74f6);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK7, 0xfffffc68);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x5afeedfe);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0x2552f26f);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0x23a3ffa6);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK3, 0x3d7088c9);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK4, 0xc936d959);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK5, 0x0ef6ea69);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK6, 0xdb7b74f6);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK7, 0xfffffc68);
+			break;
+		case 14:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x6800166c);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0x9a965149);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0x963daf5f);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK3, 0xaf0b5e2b);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK4, 0x646e6ec1);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK5, 0xfd72b90e);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK6, 0xa4914ecb);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK7, 0xfa3a75cf);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x6800166c);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0x9a965149);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0x963daf5f);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK3, 0xaf0b5e2b);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK4, 0x646e6ec1);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK5, 0xfd72b90e);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK6, 0xa4914ecb);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK7, 0xfa3a75cf);
+			break;
+		case 15:
+			atxx_nd_write_reg(REG_NFC_RSE_MSK0, 0x5f53e72f);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK1, 0xa386af50);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK2, 0x95a106d8);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK3, 0x25ea175e);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK4, 0x2fe78812);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK5, 0x1b7bf2b1);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK6, 0x0d5cbb45);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK7, 0x88a37868);
+			atxx_nd_write_reg(REG_NFC_RSE_MSK8, 0xffffdbd0);
+
+			atxx_nd_write_reg(REG_NFC_RSD_MSK0, 0x5f53e72f);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK1, 0xa386af50);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK2, 0x95a106d8);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK3, 0x25ea175e);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK4, 0x2fe78812);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK5, 0x1b7bf2b1);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK6, 0x0d5cbb45);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK7, 0x88a37868);
+			atxx_nd_write_reg(REG_NFC_RSD_MSK8, 0xffffdbd0);
+			break;
+		default:
+			printf(
+			 "ATXX NFC does not support this ecc:%d\n",
+					 ecc_number);
+		break;
+		}
+#else
 	if(size_per_sector == 512) {
 	switch (ecc_number) {
 	case 4:
@@ -588,6 +805,8 @@ static void atxx_nd_set_eccmask(void)
 	atxx_nd_write_reg(REG_NFC_RSD_MSK12,atxx_nd_read_reg(REG_NFC_RSE_MSK12));
 	atxx_nd_write_reg(REG_NFC_RSD_MSK13,atxx_nd_read_reg(REG_NFC_RSE_MSK13));
 	atxx_nd_write_reg(REG_NFC_RSD_MSK14,atxx_nd_read_reg(REG_NFC_RSE_MSK14));
+#endif
+
 }
 
 
@@ -736,8 +955,24 @@ static struct nand_flash_dev * atxx_nd_get_flash_type(
 	* because lots of new flash do not following the ID format.
 	*/
 	rt = atxx_nd_identify(nd);
-	if(rt == 1)
+	if(rt == 1) {
+#if defined(CONFIG_AT6600)
+		/* fix the nand ID identify for Hynix H27UAG8T2A */
+		if ((*maf_id == 0xad) && (dev_id == 0xd5) && (ext_id_bak == 0x25)) {
+			printf("nand fix.\n");
+			nd->erasesize = 512 * 1024;
+			nd->writesize = PAGE_SIZE_4K;
+			ecc_number = 11;
+			oob_size = 224;
+		}
+
+
+		if (nd->writesize == PAGE_SIZE_4K)
+			nd->oobsize = oob_size;
+#else
 		return ERR_PTR(-ENODEV);
+#endif
+	}
 	/* Set the bad block position */
 	nd->badblockpos = nd->writesize > 512 ?
 	    NAND_LARGE_BADBLOCK_POS : NAND_SMALL_BADBLOCK_POS;
@@ -806,8 +1041,12 @@ int atxx_nd_scan(struct nand_info *nd, int maxchips)
 
 	nd->ecc.size = size_per_sector;
 	if(ecc_number){
+#if	defined(CONFIG_AT6600)
 		/* (2*(ecc_number * 9bit)/8) byte + 1byte/0byte */
+		nd->ecc.bytes = ((ecc_number * 9) + 3)/4;
+#else
 		nd->ecc.bytes = ((ecc_number * 10) + 3)/4;
+#endif
 	}
 	else {
 		nd->ecc.bytes = 0x08;

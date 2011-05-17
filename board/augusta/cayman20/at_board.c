@@ -46,7 +46,7 @@ struct boot_parameter b_param;
 int board_init(void)
 {
 	mmu_cache_on(memory_map);
-	at6600_clock_init();
+	atxx_clock_init();
 	set_board_default_clock(pll_setting, div_setting,
 		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
 	return 0;
