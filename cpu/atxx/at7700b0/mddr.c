@@ -31,6 +31,7 @@
 #include <asm/arch-atxx/mddr.h>
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/delay.h>
+#include <asm/arch-atxx/topctl.h>
 #include <malloc.h>
 
 #define CALIBRATE_REGION		0x80
@@ -64,7 +65,7 @@ uint32_t pattern[SQUARE_LENGTH] =
 
 uint32_t C0_mddr_cfg_data[2] =
 {
-	0x00121f10 ,0x00122704
+	0x20051f21 ,0x00051f09
 };
 
 static unsigned long int next = 1;
@@ -456,8 +457,8 @@ calibration:
 /***************************************************************************
 * mddr initialize 
 ****************************************************************************/
-static uint64_t ddr2_init_table[13][6] = {
-	{0,    156000000, 198000000, 269000000, 312000000, 403000000 }, 
+static uint64_t ddr2_init_table[18][6] = {
+	{0,    156000000, 210000000, 269000000, 312000000, 403000000 }, 
 
 	{ 0x3ffbe030, 0x0203020300000001ULL,0x0203020300000001ULL,
 	0x0204030300000001ULL,0x0305040300000001ULL,0x0306040300000001ULL}, 
@@ -469,7 +470,7 @@ static uint64_t ddr2_init_table[13][6] = {
 	0x1002000000040800ULL,0x1402000000050a00ULL,0x1702000000050b00ULL}, 
 
 	{ 0x3ffbe058, 0x0003090000000000ULL,0x0003090000000000ULL,
-	0x00040b0000000000ULL,0x00050f0000000000ULL,0x0005120000000000ULL}, 
+	0x00040c0000000000ULL,0x00050f0000000000ULL,0x0005120000000000ULL}, 
 
 	{ 0x3ffbe060,  0x0000000005061800ULL,0x0000000005061800ULL,
 	0x0000000005082000ULL,0x00000000050a2800ULL,0x00000000050c3000ULL},
@@ -483,17 +484,32 @@ static uint64_t ddr2_init_table[13][6] = {
 	{ 0x3ffbe0c0,  0x0700010002000200ULL,0x0700010002000200ULL,
 	0x0700010002000300ULL,0x0700010002000400ULL,0x0700010002000400ULL},
 
+	{ 0x3ffbe0c8,  0x0612061202000200ULL,0x0612061202000200ULL,
+	0x081b081b02000200ULL,0x0a240a2402000200ULL,0x0c2d0c2d02000200ULL},
+
+	{ 0x3ffbe0d0,  0x0000000000000612ULL,0x0000000000000612ULL,
+	0x000000000000081bULL,0x0000000000000a24ULL,0x0000000000000c2dULL},
+
 	{ 0x3ffbe260,  0x0202000102020100ULL,0x0202000102020100ULL,
 	0x0202000102030100ULL,0x0202000103040100ULL,0x0202000103040100ULL},
 
-	{ 0x3ffbe270,  0x0000020003020303ULL,0x0000020003020303ULL,
-	0x0000020003020404ULL,0x0000020003020505ULL,0x0000020003020505ULL},
+	{ 0x3ffbe270,  0x0000030003020303ULL,0x0000030003020303ULL,
+	0x0000040003020404ULL,0x0000040003020505ULL,0x0000050003020505ULL},
 
-	{ 0x3ffbe288,  0x0006000606330633ULL,0x0006000606330633ULL,
-	0x0006000606430643ULL,0x0006000606530653ULL,0x0006000606530653ULL},
+	{ 0x3ffbe280,  0x0612061206120000ULL,0x0612061206120000ULL,
+	0x081b081b081b0000ULL,0x0a240a240a240000ULL,0x0c2d0c2d0c2d0000ULL},
+
+	{ 0x3ffbe288,  0x0046004604330433ULL,0x0046004604330433ULL,
+	0x0046004606430643ULL,0x0046004608530653ULL,0x000600060a530653ULL},
+
+	{ 0x3ffbe298,  0x0000000002010201ULL,0x0000000002010201ULL,
+	0x0001000002010201ULL,0x0001000002010201ULL,0x0001000002010201ULL},
 
 	{ 0x3ffbe2a0,  0x000000001a090000ULL,0x000000001a090000ULL,
 	0x00000000220c0000ULL,0x000000002b0f0000ULL,0x0000000033120000ULL},
+
+	{ 0x3ffbe2a8,  0x0000000000500000ULL,0x0000000000500000ULL,
+	0x00000000006b0000ULL,0x0000000000860000ULL,0x0000000000a00000ULL},
 };
 
 void mddr_core_init(uint32_t size)
@@ -506,6 +522,9 @@ void mddr_core_init(uint32_t size)
 	clk_value = clk_get_rate (clk);
 
 #if   defined(CFG_DDR2)
+        topctl_write_reg(TOPCTL9, 0xaaaabffc);
+        topctl_write_reg(TOPCTL10, 0x40000400);
+
 	write64(0x3ffbe000, 0x0101010000000100ULL);
 	write64(0x3ffbe008, 0x0000010100000100ULL);
 	write64(0x3ffbe010, 0x0001000100000000ULL);
@@ -523,15 +542,13 @@ void mddr_core_init(uint32_t size)
 	write64(0x3ffbe0a8, 0x0000000000000000ULL);
 	write64(0x3ffbe0b0, 0x0000000000000000ULL);
 	write64(0x3ffbe0b8, 0x0000000000000000ULL);
-	write64(0x3ffbe0c8, 0x081b081b02000200ULL);
-	write64(0x3ffbe0d0, 0x000000000000081bULL);
 	write64(0x3ffbe0d8, 0x20059d2120059d21ULL);
 	write64(0x3ffbe0e0, 0x20059d2120059d21ULL);
 	write64(0x3ffbe0e8, 0x00059f0900059f09ULL);
 	write64(0x3ffbe0f0, 0x00059f0900059f09ULL);
 	write64(0x3ffbe0f8, 0x0000000000000000ULL);
 	write64(0x3ffbe100, 0x0000000000000000ULL);
-	write64(0x3ffbe108, 0xf4013b27000f1100ULL);
+	write64(0x3ffbe108, 0xf4013b27000f3100ULL);
 	write64(0x3ffbe110, 0xf4013b27f4013b27ULL);
 	write64(0x3ffbe118, 0x26c002c0f4013b27ULL);
 	write64(0x3ffbe120, 0x26c002c026c002c0ULL);
@@ -576,10 +593,7 @@ void mddr_core_init(uint32_t size)
 	write64(0x3ffbe258, 0x0000000000000000ULL);
 	write64(0x3ffbe268, 0x0403030001000102ULL);
 	write64(0x3ffbe278, 0x0000000000000000ULL);
-	write64(0x3ffbe280, 0x081b081b081b0000ULL);
 	write64(0x3ffbe290, 0x0101000000000000ULL);
-	write64(0x3ffbe298, 0x0001000002010201ULL);
-	write64(0x3ffbe2a8, 0x00000000006b0000ULL);
 	write64(0x3ffbe2b0, 0x0000000000000000ULL);
 	write64(0x3ffbe2b8, 0x0000000000000000ULL);
 	write64(0x3ffbe2c0, 0x0000000000000000ULL);
@@ -587,7 +601,7 @@ void mddr_core_init(uint32_t size)
 
 	for (i = 1; i < 6; i++) {
 		if (clk_value <= ddr2_init_table[0][i]) {
-			for (j = 1; j < 13; j++) {
+			for (j = 1; j < 18; j++) {
 				write64(ddr2_init_table[j][0], ddr2_init_table[j][i]);
 			}
 			break;
@@ -596,6 +610,9 @@ void mddr_core_init(uint32_t size)
 
 	write64(0x3ffbe018, 0x0101010000010000ULL);
 #else
+        topctl_write_reg(TOPCTL9, 0xaaaa8001);
+        topctl_write_reg(TOPCTL10, 0x00000400);
+
 	write64(0x3ffbe000, 0x0101010000000101ULL);
 	write64(0x3ffbe008, 0x0001010100000100ULL);
 	write64(0x3ffbe010, 0x0001000100000000ULL);
@@ -748,7 +765,7 @@ static void mddr_self_refresh(void)
 	printf("Enable MDDR self-refresh mode\n");
 }
 
-static void mddr_init(struct boot_parameter *b_param)
+void mddr_init(struct boot_parameter *b_param)
 {
 	factory_data_t * f_data;
 	mddr_f_data_t * f_mddr = NULL;
@@ -757,8 +774,7 @@ static void mddr_init(struct boot_parameter *b_param)
 
 	f_data = factory_data_get(FD_MDDR);
 	if (f_data) {
-		/* mddr need do stress calibration everytime in mass production. */
-		b_param->mddr_data_send = 1;
+		b_param->mddr_data_send = 0;
 		f_mddr = (mddr_f_data_t *)f_data->fd_buf;
 		size = f_mddr->mddr_size;
 	}else {
@@ -772,15 +788,12 @@ static void mddr_init(struct boot_parameter *b_param)
 
 	mddr_core_init(size);
 
+	/* mddr need do stress calibration everytime in mass production. */
+	mddr_calibration(b_param->f_mddr.mddr_cal_data);
+
 	if (b_param->mddr_data_send) {
-		mddr_calibration(b_param->f_mddr.mddr_cal_data);
 		memcpy(fd_param->f_mddr.mddr_cal_data, b_param->f_mddr.mddr_cal_data, 8);
-	} else {
-		ret = fast_mddr_calibration (f_mddr, b_param);
-		if (ret == 1) {
-			memcpy(fd_param->f_mddr.mddr_cal_data, b_param->f_mddr.mddr_cal_data, 8);
-		}
-	}
+	} 
 
 	fd_param->mddr_data_send = b_param->mddr_data_send;
 	if (fd_param->mddr_data_send) {
@@ -790,9 +803,9 @@ static void mddr_init(struct boot_parameter *b_param)
         } else {
                 memset(fd_param, 0, sizeof(struct boot_parameter));
         }
-#if 0
+
 	mddr_self_refresh();
-#endif
+
 	/* disable & clear MME irqs */
 	write64(0x3fe00048, 0x120000000000ff00LL);
 

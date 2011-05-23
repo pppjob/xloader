@@ -198,6 +198,8 @@ static struct pll_set pll_table[] = {
 		806 * MHZ, (1 << PLL_FORMAT) | (0 << PLL_ODIV) | (62 << PLL_FDIV),
 	}, {
 		988 * MHZ, (1 << PLL_FORMAT) | (0 << PLL_ODIV) | (76 << PLL_FDIV),
+	}, {
+		1001 * MHZ, (1 << PLL_FORMAT) | (0 << PLL_ODIV) | (77 << PLL_FDIV),
 	},
 };
 #define	PLL_TABLE_COUNT		ARRAY_SIZE(pll_table)
@@ -534,8 +536,8 @@ static int clk_set_arm(unsigned long clkv)
 			ret = clk_set_parent (clk, clkp);
 			ret = clk_set_rate (clk, clkv);
 			break;
-		case 988000000:
-		case 494000000:
+		case 1001000000:
+		case 501000000:
 			clkp = clk_get ("pll2");
 			ret = clk_enable (clkp);
 			ret = clk_set_parent (clk, clkp);
@@ -613,8 +615,8 @@ static int clk_set_mddr (unsigned long clkv)
 			ret = clk_set_parent (clk, clkp);
 			ret = clk_set_rate (clk, clkv);
 			break;
-		case 165000000:
-		case 198000000:
+		case 251000000:
+		case 201000000:
 			clkp = clk_get ("pll2");
 			ret = clk_enable (clkp);
 			ret = clk_set_parent (clk, clkp);
@@ -672,8 +674,8 @@ static int clk_set_dspcore (unsigned long clkv)
 			ret = clk_set_parent (clk, clkp);
 			ret = clk_set_rate (clk, clkv);
 			break;
-		case 988000000:
-		case 494000000:
+		case 1001000000:
+		case 501000000:
 			clkp = clk_get ("pll2");
 			ret = clk_enable (clkp);
 			ret = clk_set_parent (clk, clkp);
@@ -716,7 +718,7 @@ static int clk_set_vpclk (unsigned long clkv)
 			ret = clk_set_parent (clk, clkp);
 			ret = clk_set_rate (clk, clkv);
 			break;
-		case 494000000:
+		case 501000000:
 			clkp = clk_get ("pll2");
 			ret = clk_enable (clkp);
 			ret = clk_set_parent (clk, clkp);
@@ -759,7 +761,7 @@ static int clk_set_gclk (unsigned long clkv)
 			ret = clk_set_parent (clk, clkp);
 			ret = clk_set_rate (clk, clkv);
 			break;
-		case 494000000:
+		case 501000000:
 			clkp = clk_get ("pll2");
 			ret = clk_enable (clkp);
 			ret = clk_set_parent (clk, clkp);
@@ -802,7 +804,7 @@ static int clk_set_vsclk (unsigned long clkv)
 			ret = clk_set_parent (clk, clkp);
 			ret = clk_set_rate (clk, clkv);
 			break;
-		case 494000000:
+		case 501000000:
 			clkp = clk_get ("pll2");
 			ret = clk_enable (clkp);
 			ret = clk_set_parent (clk, clkp);

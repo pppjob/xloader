@@ -30,7 +30,7 @@ struct clock_default_setting div_setting[] = {
 	{PLL1,    0, 52 * MHZ},		/*"camclk"*/
 	{PLL1,    0, 26 * MHZ},		/*"camera"*/
 	{PLL1,    1, 156 * MHZ},	/*"vpclk"*/
-	{PLL2,    1, 494 * MHZ},	/*"dspcore"*/
+	{PLL2,    1, 501 * MHZ},	/*"dspcore"*/
 	{PLL1,    1, 312 * MHZ},	/*"axi"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"spi0"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"spi1"*/
@@ -42,7 +42,7 @@ struct clock_default_setting div_setting[] = {
 	{PLL1,    1, 104 * MHZ},	/*"app"*/
 	{PLL1,    1, 312 * MHZ},	/*"gclk" graphic mm_top TODO */
 	{CRYSTAL, 1, UNCHANGED},	/*"pclk" apb clock */
-	{PLL2,    1, 198 * MHZ},	/*"mddr"*/
+	{PLL2,    1, 201 * MHZ},	/*"mddr"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"gps2"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"hdmi_s0"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"hdmi"*/
@@ -74,7 +74,7 @@ struct clock_default_setting div_setting[] = {
 
 struct clock_default_setting pll_setting[] = {
 	{UNCHANGED, 1, 624 * MHZ},	/*"pll1"*/
-	{UNCHANGED, 1, 988 * MHZ},	/*"pll2"*/
+	{UNCHANGED, 1, 1001 * MHZ},	/*"pll2"*/
 	{UNCHANGED, 1, 806 * MHZ},	/*"pll3"*/
 	
 };
