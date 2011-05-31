@@ -164,6 +164,10 @@ atb1004_config :    unconfig
 	@./mkconfig $(@:_config=)  arm atxx atb1004 augusta at7700b0;\
 	touch ./include/config.h
 
+atb1005_config :    unconfig
+	@./mkconfig $(@:_config=)  arm atxx atb1005 augusta at7700b0;\
+	touch ./include/config.h
+
 #########################################################################
 ## OMAP1 (ARM92xT) Systems
 #########################################################################
