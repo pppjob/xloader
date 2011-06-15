@@ -458,7 +458,7 @@ calibration:
 * mddr initialize 
 ****************************************************************************/
 static uint64_t ddr2_init_table[18][6] = {
-	{0,    156000000, 210000000, 269000000, 312000000, 403000000 }, 
+	{0,    156000000, 210000000, 269000000, 340000000, 403000000 }, 
 
 	{ 0x3ffbe030, 0x0203020300000001ULL,0x0203020300000001ULL,
 	0x0204030300000001ULL,0x0305040300000001ULL,0x0306040300000001ULL}, 
@@ -522,7 +522,7 @@ void mddr_core_init(uint32_t size)
 	clk_value = clk_get_rate (clk);
 
 #if   defined(CFG_DDR2)
-        topctl_write_reg(TOPCTL9, 0xaaaabffc);
+        topctl_write_reg(TOPCTL9, 0xaaaa8000);
         topctl_write_reg(TOPCTL10, 0x40000400);
 
 	write64(0x3ffbe000, 0x0101010000000100ULL);

@@ -617,6 +617,7 @@ static int clk_set_mddr (unsigned long clkv)
 			break;
 		case 251000000:
 		case 201000000:
+		case 334000000:
 			clkp = clk_get ("pll2");
 			ret = clk_enable (clkp);
 			ret = clk_set_parent (clk, clkp);

@@ -100,8 +100,8 @@ void at2600_pm_mddr_power_control(enum power_supply_mode mode, int voltage)
 u8 at2600_set_default_power_supply(void)
 {
 	u8 regvalue;
-	printf("\nset arm to 1.2V.");
-	at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V2);
+	printf("\nset arm to 1.3V.");
+	at2600_pm_ap_core_power_control(PS_ON, S1V2C1_DOUT_1V3);
 	printf("\nset mddr to 1.8V.");
 	at2600_pm_mddr_power_control(PS_ON,S1V8C1_DOUT_1V8);
 
