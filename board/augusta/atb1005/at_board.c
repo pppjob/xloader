@@ -46,20 +46,10 @@ struct boot_parameter b_param;
 
 int board_init(void)
 {
-	uint32_t gpio_reg;
-
 	mmu_cache_on(memory_map);
 	atxx_clock_init();
 	set_board_default_clock(pll_setting, div_setting,
 		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
-
-	/* disable at2600 26M and I2C,solve the conflict of ctp and at2600 */
-	gpio_reg = readl(ATXX_GPIOB_BASE+0x04);
-	gpio_reg |= 0x1 << 6;
-	writel(gpio_reg, ATXX_GPIOB_BASE+0x04);
-	gpio_reg = readl(ATXX_GPIOB_BASE+0x0);
-	gpio_reg |= 0x1 << 6;
-	writel(gpio_reg,  ATXX_GPIOB_BASE+0x0);
 
 	return 0;
 }
@@ -67,19 +57,9 @@ int board_init(void)
 uint32_t main_course(char *boot_dev_name)
 {
 	int ret;
-	uint32_t gpio_reg;
 	struct boot_parameter *parameter = &b_param;
 	boot_info_t *info = &boot_info;
         unsigned int hwcfg, swcfg;
-
-	/* enable at2600 26M and I2C */
-	gpio_reg = readl(ATXX_GPIOB_BASE+0x04);
-	gpio_reg |= 0x1 << 6;
-	writel(gpio_reg, ATXX_GPIOB_BASE+0x04);
-	gpio_reg = readl(ATXX_GPIOB_BASE+0x0);
-	gpio_reg &= ~(0x1 << 6);
-	writel(gpio_reg,  ATXX_GPIOB_BASE+0x0);
-	mdelay(100);
 
 	i2c_at2600_init();
 	at2600_set_default_power_supply();

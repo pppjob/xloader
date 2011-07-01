@@ -110,6 +110,24 @@ u8 at2600_set_default_power_supply(void)
 u8 i2c_at2600_init(void)
 {
 	u8 buf;
+	uint32_t gpio_reg;
+
+	/* disable at2600 26M and I2C,solve the conflict of ctp and at2600 */
+	gpio_reg = readl(ATXX_GPIOB_BASE+0x04);
+	gpio_reg |= 0x1 << 6;
+	writel(gpio_reg, ATXX_GPIOB_BASE+0x04);
+	gpio_reg = readl(ATXX_GPIOB_BASE+0x0);
+	gpio_reg |= 0x1 << 6;
+	writel(gpio_reg,  ATXX_GPIOB_BASE+0x0);
+	mdelay(10);
+	/* enable at2600 26M and I2C */
+	gpio_reg = readl(ATXX_GPIOB_BASE+0x04);
+	gpio_reg |= 0x1 << 6;
+	writel(gpio_reg, ATXX_GPIOB_BASE+0x04);
+	gpio_reg = readl(ATXX_GPIOB_BASE+0x0);
+	gpio_reg &= ~(0x1 << 6);
+	writel(gpio_reg,  ATXX_GPIOB_BASE+0x0);
+	mdelay(100);
 
 	/*Init i2c*/
 	i2c_init(1,at2600_ADDR);
