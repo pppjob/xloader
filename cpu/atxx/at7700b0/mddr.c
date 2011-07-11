@@ -169,14 +169,15 @@ static void change_cal_reg (uint32_t addr, uint8_t reg_sum, uint8_t cal_data, ui
 	}
 }
 
+#define CALIBRATION_STEP 3
 static uint8_t calibrate_4ch (uint32_t calibrate_addr, uint32_t rev_value, uint32_t calibrate_byte)
 {
 	uint8_t rev_val;
 	uint8_t window_val;
-	uint8_t flag = 1, right_flag = 1;
-	int fail_length = 0;
-	int down_fail_length = 0;
-	uint32_t aver = 0, min = 0, max = 0;
+	uint8_t i;
+	uint8_t temp_val;
+	uint8_t left_flag = 0;
+	uint8_t right_flag = 0;
 
 	/*calibrate_byte=0: calibrate all bytes, and all the bytes are same.*/
 	if (calibrate_byte == 0) {
@@ -190,53 +191,36 @@ static uint8_t calibrate_4ch (uint32_t calibrate_addr, uint32_t rev_value, uint3
 	if (!mem_special_test (10)) {
 		window_val = rev_val;
 	}else {
-		min = rev_val;
-		max = CALIBRATE_REGION;
-		while (1) {
-			aver = (min + max)/2;
-			change_cal_reg (calibrate_addr, 4, aver, calibrate_byte);
-			if (!mem_special_test (10)) {
-				window_val = aver;
-				break;
+		for(i = 1; ; i++) {
+			temp_val = rev_val + i * CALIBRATION_STEP;
+			if(temp_val < CALIBRATE_REGION) {
+				change_cal_reg (calibrate_addr, 4, temp_val, calibrate_byte);
+				if (!mem_special_test (10)) {
+					window_val = temp_val;
+					break;
+				}
 			} else {
-				if (flag == 1) {
-					min = aver;
-				} else {
-					max = aver;
-				}
-
-				if(right_flag == 1) {
-					fail_length++;
-					if (fail_length > 9) {
-						fail_length = 0;
-						down_fail_length++;
-						min = rev_val;
-						max = CALIBRATE_REGION;
-						flag = 0;
-						if (down_fail_length >= 2) {
-							right_flag = 0;
-							flag = 1;
-							min = 0;
-							max = rev_val;
-							down_fail_length = 0;
-						}
-					}
-				} else {
-					fail_length++;
-					if (fail_length > 9) {
-						fail_length = 0;
-						down_fail_length++;
-						min = 0;
-						max = rev_val;
-						flag = 0;
-						if (down_fail_length >= 2) {
-							printf("Calibrate FAIL! Can not find the window.");
-							return 0xff;
-						}
-					}
-				}
+				/* reach the max value */
+				right_flag = 1;  
 			}
 
+			temp_val = rev_val - i * CALIBRATION_STEP;
+			/* means if(temp_val > 0) */
+			if((i * CALIBRATION_STEP) < rev_val) {
+				change_cal_reg (calibrate_addr, 4, temp_val, calibrate_byte);
+				if (!mem_special_test (10)) {
+					window_val = temp_val;
+					break;
+				}
+			} else {
+				/* reach the min value */
+				left_flag = 1;
+			}
+
+			if(left_flag && right_flag) {
+				printf("Calibrate FAIL! Can not find the window.");
+				return 0xff;
+			}
 		}
 	}
 	printf("window: 0x%02x. ", window_val);
