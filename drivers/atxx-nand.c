@@ -148,10 +148,17 @@ static void atxx_nd_set_timing(void)
 		write_hold_time = write_setup_time = 4;
 	} else if ((rate < 156 * 1024 * 1024)
 		   && (rate >= 104 * 1000 * 1000)) {
+#if defined(CONFIG_BOARD_ATB1005)
+		read_hold_time = 0;
+		read_setup_time = 2;
+		write_hold_time = 4;
+		write_setup_time = 3;
+#else
 		read_hold_time = 0;
 		read_setup_time = 2;
 		write_hold_time = 3;
 		write_setup_time = 3;
+#endif
 	} else {
 		read_hold_time = read_setup_time = 3;
 		write_hold_time = write_setup_time = 4;

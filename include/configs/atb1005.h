@@ -25,6 +25,7 @@
 
 #define CONFIG_ATXX
 #define CONFIG_AT7700B0
+#define CONFIG_BOARD_ATB1005
 
 /* memory layout */
 #define CONFIG_UNCONTINUOUS_MEM
