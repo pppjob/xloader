@@ -47,11 +47,12 @@ struct boot_parameter b_param;
 int board_init(void)
 {
 	uint32_t gpio_reg;
+	unsigned int proccfg;
 
 	mmu_cache_on(memory_map);
 	atxx_clock_init();
 	set_board_default_clock(pll_setting, div_setting,
-		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
+			PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
 
 	/* disable at2600 26M and I2C,solve the conflict of ctp and at2600 */
 	gpio_reg = readl(ATXX_GPIOB_BASE+0x04);
@@ -60,6 +61,11 @@ int board_init(void)
 	gpio_reg = readl(ATXX_GPIOB_BASE+0x0);
 	gpio_reg |= 0x1 << 6;
 	writel(gpio_reg,  ATXX_GPIOB_BASE+0x0);
+
+	/* Disable axi and mddr clock sync mode */
+	proccfg = pm_read_reg(PROCCFGR);
+	proccfg |= (1 << 10);
+	pm_write_reg(PROCCFGR, proccfg);
 
 	return 0;
 }

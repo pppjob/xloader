@@ -46,10 +46,17 @@ struct boot_parameter b_param;
 
 int board_init(void)
 {
+        unsigned int proccfg;
+
 	mmu_cache_on(memory_map);
 	atxx_clock_init();
 	set_board_default_clock(pll_setting, div_setting,
 		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
+
+        /* Disable axi and mddr clock sync mode */
+        proccfg = pm_read_reg(PROCCFGR);
+        proccfg |= (1 << 10);
+        pm_write_reg(PROCCFGR, proccfg);
 
 	return 0;
 }
