@@ -2,9 +2,6 @@
 # (C) Copyright 2000-2006
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
-# (C) Copyright 2008
-# Guennadi Liakhovetki, DENX Software Engineering, <lg@denx.de>
-#
 # See file CREDITS for list of people who contributed to this
 # project.
 #
@@ -15,7 +12,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -26,25 +23,25 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= lib$(CPU).a
+LIB	= lib$(BOARD).a
 
-START	:= start.o
-OBJS	:= clock_common.o cpu.o parse_bootparam.o gpio.o
-#ifdef CMD_FACTORY
-OBJS += factory.o
-#endif
+OBJS	:= at2600_generic.o at_board.o
+#SOBJS	:=
 
+$(LIB):	$(OBJS) $(SOBJS)
+	$(AR) crv $@ $^
 
-all:	.depend $(START) $(LIB)
+clean:
+	rm -f $(SOBJS) $(OBJS)
 
-$(LIB):	$(OBJS)
-	$(AR) crv $@ $(OBJS)
+distclean:	clean
+	rm -f $(LIB) core *.bak .depend
 
 #########################################################################
 
-.depend:	Makefile $(START:.o=.S) $(OBJS:.o=.c)
-		$(CC) -M $(CFLAGS) $(START:.o=.S) $(OBJS:.o=.c) > $@
+.depend:	Makefile $(SOBJS:.o=.S) $(OBJS:.o=.c)
+		$(CC) -M $(CPPFLAGS) $(SOBJS:.o=.S) $(OBJS:.o=.c) > $@
 
-sinclude .depend
+-include .depend
 
 #########################################################################

@@ -172,6 +172,10 @@ g01_config :    unconfig
 	@./mkconfig $(@:_config=)  arm atxx g01 augusta at7700b0;\
 	touch ./include/config.h
 
+gbox_config :    unconfig
+	@./mkconfig $(@:_config=)  arm atxx gbox augusta at7700b0;\
+	touch ./include/config.h
+
 #########################################################################
 ## OMAP1 (ARM92xT) Systems
 #########################################################################

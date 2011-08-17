@@ -136,10 +136,10 @@ static void atxx_nd_set_timing(void)
 	uint32_t reg_data;
 	uint8_t read_hold_time, read_setup_time;
 	uint8_t write_hold_time, write_setup_time;
-        struct clk *clk_app;
+	struct clk *clk_app;
 	unsigned long rate;
 
-        clk_app = clk_get("app");	
+	clk_app = clk_get("app");
 	rate = clk_get_rate(clk_app);
 
 	/* timing params according to clk_app */
@@ -293,7 +293,7 @@ static  void nfc_send_readpage_udf_cmd(u32 data_len, u32 addr_len, u32 ecc_enabl
 
 /*******************************************
 *  Bit0~3           PAGE_SIZE           BLOCK_SIZE                               
-*  0000 : If = 0, we identify the nand with ID table as before.                  
+*  0000 			 8192                  8192KB
 *  0001              4096                   256KB                       
 *  0010              4096                   512KB                       
 *  0100              4096                  1024KB                        
@@ -310,15 +310,15 @@ static  void nfc_send_readpage_udf_cmd(u32 data_len, u32 addr_len, u32 ecc_enabl
 *  1110              8192                   512KB                        
 *  1111              8192                  1024KB                        
 *
-*  bit 4~6           ecc bit             oob_size_per_512     
-*  000                4                      16
-*  001                8                      20    
-*  010                12                     28
-*  100                15                     36 
-*  111                1                      16
-*  110                0                      16
-*  101                6                      16
-*  011                10                     24
+*  bit 4~6           ecc bit             oob_size_per_sector    sector size
+*  000                 4                      16                     512
+*  001                10                      26                     512
+*  010                 8                      22                     512
+*  100                12                      30                    1024
+*  111                22                      56                    1024
+*  110                 0                      16                     512
+*  101                20                      52                    1024
+*  011                24                      64                    1024
 *
 *  bit 7             Bus Width
 *  0                    8
@@ -328,9 +328,8 @@ static  void nfc_send_readpage_udf_cmd(u32 data_len, u32 addr_len, u32 ecc_enabl
 static uint32_t atxx_nd_identify(struct nand_info *nd)
 {  
 	uint32_t io_data, value, rt = 0;
-	 
-	io_data = atxx_nd_read_reg(REG_NFC_SOFT_PIN2);
 
+	io_data = atxx_nd_read_reg(REG_NFC_SOFT_PIN2);
 	printf("nand io data: 0x%02x\n", io_data);
 #if defined(CONFIG_AT6600)
 	if((io_data & 0xff) == 0)
@@ -430,17 +429,17 @@ static uint32_t atxx_nd_identify(struct nand_info *nd)
 		case 3:
 			ecc_number = 24;
 			size_per_sector = 1024;
-			nd->oobsize = 24 * (nd->writesize / size_per_sector);
+			nd->oobsize = 64 * (nd->writesize / size_per_sector);
 			break;
 		case 4:
-			ecc_number = 15;
+			ecc_number = 12;
 			size_per_sector = 1024;
-			nd->oobsize = 36 * (nd->writesize / size_per_sector);
+			nd->oobsize = 30 * (nd->writesize / size_per_sector);
 			break;
 		case 5:
-			ecc_number = 6;
+			ecc_number = 20;
 			size_per_sector = 1024;
-			nd->oobsize = 16 * (nd->writesize / size_per_sector);
+			nd->oobsize = 52 * (nd->writesize / size_per_sector);
 			break;
 		case 6:
 			ecc_number = 0;
@@ -448,9 +447,9 @@ static uint32_t atxx_nd_identify(struct nand_info *nd)
 			nd->oobsize = 16 * (nd->writesize / size_per_sector);
 			break;
 		case 7:
-			ecc_number = 1;
+			ecc_number = 22;
 			size_per_sector = 1024;
-			nd->oobsize = 16 * (nd->writesize / size_per_sector);
+			nd->oobsize = 56 * (nd->writesize / size_per_sector);
 			break;
 		default:
 			break;
@@ -909,11 +908,11 @@ static struct nand_flash_dev * atxx_nd_get_flash_type(
 	int i, dev_id, maf_idx, ext_id, ext_id_bak;
 	uint32_t rt;
 
-
 	/* Select the device */
 	atxx_nd_select_chip(nd, 0);
 	atxx_nd_read_ids(maf_id, &dev_id, &ext_id);
 	ext_id_bak = ext_id;
+	atxx_nd_select_chip(nd, -1);
 
 	/* Lookup the flash id */
 	for (i = 0; nand_flash_ids[i].name != NULL; i++) {
@@ -956,7 +955,6 @@ static struct nand_flash_dev * atxx_nd_get_flash_type(
 		if (nand_manuf_ids[maf_idx].id == *maf_id)
 			break;
 	}
-
 	/*
 	* we have used nand data pin to identify nand
 	* because lots of new flash do not following the ID format.
@@ -1029,7 +1027,7 @@ int atxx_nd_scan(struct nand_info *nd, int maxchips)
 		int first_id, second_id, fourth_id;
 		atxx_nd_select_chip(nd, i);
 		atxx_nd_read_ids(&first_id, &second_id, &fourth_id);
-
+		atxx_nd_select_chip(nd, -1);
 		/* Read manufacturer and device IDs */
 		if (maf_id != first_id || type->id != second_id)
 			break;
@@ -1046,15 +1044,14 @@ int atxx_nd_scan(struct nand_info *nd, int maxchips)
 				NFC_ECC_DE_RESET | ecc_number);
 
 	nd->ecc.size = size_per_sector;
-	if(ecc_number){
+	if(ecc_number) {
 #if	defined(CONFIG_AT6600)
 		/* (2*(ecc_number * 9bit)/8) byte + 1byte/0byte */
 		nd->ecc.bytes = ((ecc_number * 9) + 3)/4;
 #else
 		nd->ecc.bytes = ((ecc_number * 10) + 3)/4;
 #endif
-	}
-	else {
+	} else {
 		nd->ecc.bytes = 0x08;
 	}
 	nd->ecc.steps = nd->writesize / nd->ecc.size;
