@@ -42,7 +42,7 @@ struct clock_default_setting div_setting[] = {
 	{PLL1,    1, 104 * MHZ},	/*"app"*/
 	{PLL1,    1, 312 * MHZ},	/*"gclk" graphic mm_top TODO */
 	{CRYSTAL, 1, UNCHANGED},	/*"pclk" apb clock */
-	{PLL1,    1, 312 * MHZ},	/*"mddr"*/
+	{PLL2,    1, 201 * MHZ},	/*"mddr"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"gps2"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"hdmi_s0"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"hdmi"*/
