@@ -740,8 +740,8 @@ static void mddr_self_refresh(void)
 	* Enter low power mode. 40~44 bit: lowpower control;
 	* 32~36 bit: lowpower auto enable.
 	*/
-	writel(0x007f, 0x3ffbe070);
-	writel(0x7f00, 0x3ffbe074);
+	writel(0x00ff, 0x3ffbe070);
+	writel(0xff00, 0x3ffbe074);
 
 	/*
 	* Memory Self-Refresh with Memory and Controller
