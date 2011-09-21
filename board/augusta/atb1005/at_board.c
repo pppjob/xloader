@@ -43,15 +43,77 @@
 #include "at2600_generic.h"
 
 struct boot_parameter b_param;
+typedef int (boot_jump) (void);
+
+#define TCM_SIZE 0x1000
+#define ARM_PWD_PARA_BASE       0x89803E00
+#define ITCM_START_OFFSET       0
+#define DTCM_START_OFFSET       0x4
+#define TCM_IMAGE_OFFSET        0x8
+#define PC_OFFSET               0x10
 
 int board_init(void)
 {
-        unsigned int proccfg;
+	unsigned int proccfg;
+	unsigned int swcfg;
+	uint32_t tcm_region;
+	char *start;
+	char *tcm_image;
+
+	/* Enable clk_app, clk_proc, and part of clk-axi */
+	proccfg = pm_read_reg(PROCCFGR);
+	proccfg &= ~(7 << 4);
+	pm_write_reg(PROCCFGR, proccfg);
+
+
+	swcfg = pm_read_reg(SWCFGR);
+	if ((swcfg & SWCFGR_SUSPEND_MASK) == SWCFGR_SUSPEND_ARMPWD) {
+		/*************************************************
+		** We put address info to last 256Byte in ATAG area
+		** The ATAG area is from 0x89800000 to 0x89804000 for AT7700
+		** If the base address have changed, we have to change this too.
+		*************************************************/
+		tcm_image = (char *)*(volatile uint32_t *)(ARM_PWD_PARA_BASE + TCM_IMAGE_OFFSET);
+
+		/* ITCM initialize */
+		start = (char *)*(volatile uint32_t *)(ARM_PWD_PARA_BASE + ITCM_START_OFFSET);
+
+		asm("mrc        p15, 0, %0, c9, c1, 1"
+				: "=r" (tcm_region));
+		tcm_region = (uint32_t)start | (tcm_region & 0x00000ffeU) | 1;
+		asm("mcr        p15, 0, %0, c9, c1, 1"
+				: /* No output operands */
+				: "r" (tcm_region));
+
+		memcpy(start, tcm_image - 0xc0000000 + 0x89800000, TCM_SIZE);
+
+		/* DTCM initialize */
+		start = (char *)*(volatile uint32_t *)(ARM_PWD_PARA_BASE + DTCM_START_OFFSET);
+
+		asm("mrc        p15, 0, %0, c9, c1, 0"
+				: "=r" (tcm_region));
+		tcm_region = (uint32_t)start | (tcm_region & 0x00000ffeU) | 1;
+		asm("mcr        p15, 0, %0, c9, c1, 0"
+				: /* No output operands */
+				: "r" (tcm_region));
+
+		memcpy(start, tcm_image - 0xc0000000 + 0x89800000 + TCM_SIZE, TCM_SIZE);
+
+		cleanup_before_boot();
+		start = (char *)*(volatile uint32_t *)(ARM_PWD_PARA_BASE + PC_OFFSET);
+		start = start + 0xb0;	/* we put some nop to make sure can back correctlly. */
+
+		printf("Jump to: 0x%08x.\n", (uint32_t)start);
+		((boot_jump *)start)();
+
+		printf("Wrong!\n");
+		while(1);
+	}
 
 	mmu_cache_on(memory_map);
 	atxx_clock_init();
 	set_board_default_clock(pll_setting, div_setting,
-		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
+			PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
 
 	/* Disable axi and mddr clock sync mode */
 	proccfg = pm_read_reg(PROCCFGR);

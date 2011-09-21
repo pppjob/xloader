@@ -569,6 +569,8 @@ static int clk_set_axi (unsigned long clkv)
 		return 0;
 
 	switch (clkv) {
+		case 52000000:
+		case 104000000:
 		case 156000000:
 		case 208000000:
 		case 312000000:

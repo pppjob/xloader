@@ -20,8 +20,8 @@
 *
 ------------------------------------------------------------------------------*/
 
-#ifndef __ASM_ARCH_AT7700A0_PM_H
-#define __ASM_ARCH_AT7700A0_PM_H
+#ifndef __ASM_ARCH_AT7700B0_PM_H
+#define __ASM_ARCH_AT7700B0_PM_H
 
 /* Power Management Unit register offset */
 #define	HWCFGR		0x00 	/* HW configuration register */
@@ -29,7 +29,7 @@
 #define	SWRSTR		0x08 	/* Soft reset register */
 #define	ARMCFGR		0x10 	/* ARM configuration register */
 #define	PROCCFGR	0x14 	/* PROC configuration register */
-#define	DSPCFGR		0x18 	/* DSP configuration register */
+#define	DSPACR		0x1C 	/* DSP access control register */
 #define	COMMCFGR	0x20 	/* COMM configuration register */
 #define	PMSTATR		0x3C 	/* PM status register */
 #define	PMCFGR		0x40 	/* PM configuration register */
@@ -56,6 +56,7 @@
 #define	SWCFGR_SUSPEND_MASK		0xF00
 #define	SWCFGR_SUSPEND_RAM		0x100
 #define	SWCFGR_SUSPEND_DISK		0x200
+#define	SWCFGR_SUSPEND_ARMPWD		0x400
 
 /* SWRSTR bits */
 #define	SWRSTR_SOFT_RESET		0x900DB88E
