@@ -45,7 +45,7 @@
 int print_info(void)
 {
 	printf ("\n\nX-Loader 1.5 ("
-		__DATE__ " - " __TIME__ ")\n");
+		__DATE__ " - " __TIME__ ")"CONFIG_IDENT_STRING);
 	return 0;
 }
 #endif
