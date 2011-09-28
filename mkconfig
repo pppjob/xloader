@@ -69,6 +69,7 @@ for i in ${TARGETS} ; do
 done
 
 echo "#include <configs/$1.h>" >>config.h
+echo "#define BOARD_NAME \"$1\"" >>config.h
 
 
 exit 0

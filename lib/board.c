@@ -44,8 +44,8 @@
 #ifdef CFG_PRINTF
 int print_info(void)
 {
-	printf ("\n\nX-Loader 1.5 ("
-		__DATE__ " - " __TIME__ ")"CONFIG_IDENT_STRING);
+	printf ("\n\nX-Loader 1.5 for board %s (%s %s)\n\n",
+			BOARD_NAME, __DATE__, __TIME__);
 	return 0;
 }
 #endif

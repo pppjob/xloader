@@ -25,7 +25,6 @@
 
 #define CONFIG_ATXX
 #define CONFIG_AT7700B0
-#define CONFIG_IDENT_STRING 		"\n== AT7700B0-G01 ==\n\n"
 
 /* memory layout */
 #define CONFIG_UNCONTINUOUS_MEM
