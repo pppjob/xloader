@@ -617,6 +617,7 @@ static int clk_set_mddr (unsigned long clkv)
 			ret = clk_set_parent (clk, clkp);
 			ret = clk_set_rate (clk, clkv);
 			break;
+		case 167000000:
 		case 251000000:
 		case 201000000:
 		case 334000000:
