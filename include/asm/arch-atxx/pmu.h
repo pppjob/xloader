@@ -199,7 +199,7 @@ enum power_supply_mode{
 
 
 u8 i2c_at2600_init(void);
-u8 at2600_set_default_power_supply(void);
+u8 at2600_set_default_power_supply(int arm_core_vol, int mddr_vol);
 
 #endif /* ___AT2600_PM_REGS_H_______ */
 

@@ -30,7 +30,7 @@ struct clock_default_setting div_setting[] = {
 	{PLL1,    0, 52 * MHZ},		/*"camclk"*/
 	{PLL1,    0, 26 * MHZ},		/*"camera"*/
 	{PLL1,    1, 156 * MHZ},	/*"vpclk"*/
-	{PLL2,    1, 501 * MHZ},	/*"dspcore"*/
+	{PLL1,    1, 312 * MHZ},	/*"dspcore"*/
 	{PLL1,    1, 312 * MHZ},	/*"axi"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"spi0"*/
 	{CRYSTAL, 0, UNCHANGED},	/*"spi1"*/

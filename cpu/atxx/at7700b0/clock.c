@@ -513,7 +513,7 @@ void set_board_default_clock(struct clock_default_setting *pll,
 }
 
 /* FIXME : not test for can't run it on pm borad */
-static int clk_set_arm(unsigned long clkv)
+int clk_set_arm(unsigned long clkv)
 {
 	struct clk *clk;
 	struct clk *clkp;
@@ -556,7 +556,7 @@ static int clk_set_arm(unsigned long clkv)
 	return ret;
 }
 
-static int clk_set_axi (unsigned long clkv)
+int clk_set_axi (unsigned long clkv)
 {
 	struct clk *clk;
 	struct clk *clkp;

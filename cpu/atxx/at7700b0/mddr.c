@@ -32,6 +32,7 @@
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/delay.h>
 #include <asm/arch-atxx/topctl.h>
+#include <asm/arch-atxx/pmu.h>
 #include <malloc.h>
 
 #define CALIBRATE_REGION		0x80
@@ -54,6 +55,8 @@ struct boot_parameter *fd_param = (struct boot_parameter *)MDDR_BASE_ADDR;
 * mddr calibration
 ****************************************************************************/
 
+static int max_win, min_win;
+
 uint32_t square_image[SQUARE_LENGTH][SQUARE_LENGTH];
 uint32_t pattern[SQUARE_LENGTH] =
 {
@@ -62,10 +65,14 @@ uint32_t pattern[SQUARE_LENGTH] =
 	0x12345678, 0x87654321, 0x13572468, 0x24681357,
 	0xff5500aa, 0x0af5af05, 0x5f0aaf50, 0x0055aaff
 };
-
+   
 uint32_t C0_mddr_cfg_data[2] =
 {
-	0x20051f21 ,0x00051f09
+#if   defined(CFG_DDR2)
+	0xe0051f08 ,0x00051f1f
+#else
+	0xe0091f08 ,0x00091f1f
+#endif
 };
 
 static unsigned long int next = 1;
@@ -178,6 +185,11 @@ static uint8_t calibrate_4ch (uint32_t calibrate_addr, uint32_t rev_value, uint3
 	uint8_t temp_val;
 	uint8_t left_flag = 0;
 	uint8_t right_flag = 0;
+	uint32_t max_cfg = 0, min_cfg = 0;
+	uint8_t flag = 0, down_flag;
+	int pass_length = 0, fail_length = 0;
+	uint32_t aver, min, max;
+
 
 	/*calibrate_byte=0: calibrate all bytes, and all the bytes are same.*/
 	if (calibrate_byte == 0) {
@@ -224,7 +236,71 @@ static uint8_t calibrate_4ch (uint32_t calibrate_addr, uint32_t rev_value, uint3
 		}
 	}
 	printf("window: 0x%02x. ", window_val);
-	return window_val;
+
+	min = window_val;
+	max = CALIBRATE_REGION;
+	fail_length = 0;
+	flag = 1;
+	down_flag = 1;
+	while (1) {
+		/*search max value*/
+		if (flag) {
+			aver = (min + max)/2;
+			change_cal_reg (calibrate_addr, 4, aver, calibrate_byte);
+			if (!mem_special_test(10)) {
+				min = aver;
+				pass_length++;
+				if (pass_length > 9) {
+					max_cfg = aver;
+					flag = 0;
+				}
+			} else {
+				fail_length++;
+				pass_length = 0;
+				max = aver;
+				if (fail_length > 9) {
+					max_cfg = aver;
+					flag = 0;
+				}
+			}
+		/*search min value*/
+		} else {
+			if (down_flag) {
+				down_flag = 0;
+				pass_length = 0;
+				fail_length = 0;
+				min = 0;
+				max = window_val;
+			}
+			aver = (min + max)/2;
+			change_cal_reg (calibrate_addr, 4, aver, calibrate_byte);
+			if (!mem_special_test(10)) {
+				max = aver;
+				pass_length++;
+				if(pass_length > 9) {
+					min_cfg = aver;
+					break;
+				}
+			} else {
+				min = aver;
+				fail_length++;
+				pass_length = 0;
+				if (fail_length > 9) {
+					min_cfg = aver;
+					break;
+				}
+			}
+		}
+	}
+
+	rev_val = (max_cfg+min_cfg)/2;
+
+	max_win = max_cfg;
+	min_win = min_cfg;
+	printf ("min->0x%02x. max->0x%02x. cfg->0x%02x.", min_cfg, max_cfg, rev_val);
+	change_cal_reg (calibrate_addr, 4, rev_val, calibrate_byte);
+
+	return rev_val;
 }
 
 static uint8_t calibrate_bytemask (uint32_t calibrate_addr, uint8_t rev_value, uint32_t calibrate_byte, uint32_t byte_mask)
@@ -299,7 +375,7 @@ static uint8_t calibrate_bytemask (uint32_t calibrate_addr, uint8_t rev_value, u
 
 	return rev_val;
 }
-
+#if 0
 int mddr_calibration (uint8_t *buf)
 {
 	uint32_t rev_val;
@@ -316,11 +392,22 @@ int mddr_calibration (uint8_t *buf)
 	}
 	srand (5);
 
+	rev_val = C0_mddr_cfg_data[1];
+	change_cal_reg (MDDR_CTRL_29_0, 4, rev_val, 2);
+
 	rev_val = C0_mddr_cfg_data[0];
 	printf ("\n\rCalibrate d8-e4:");
 	window_val = calibrate_4ch (MDDR_CTRL_27_0, rev_val, 2);
 	if (window_val == 0xff) {
-		goto fail;
+		for (i = 0; i < 0x7f; i++) {
+			change_cal_reg (MDDR_CTRL_29_0, 4, i, 2);
+			rev_val = C0_mddr_cfg_data[0];
+			printf ("\n\rCalibrate d8-e4:");
+			window_val = calibrate_4ch (MDDR_CTRL_27_0, rev_val, 2);
+			if (window_val != 0xff) {
+				break;
+			}
+		}
 	}
 
 	printf("\n\rCalibrate d8:");
@@ -394,7 +481,123 @@ fail:
 	printf ("\nMDDR Calibration failed ...\n");
 	return -1;
 }
+#else
 
+static int __mddr_calibration(uint8_t *max_r, uint8_t *min_r, uint8_t *max_w, uint8_t *min_w)
+{
+	uint32_t ddr_val;
+	uint32_t rev_val;
+	uint32_t i, j;
+	uint8_t window_val;
+
+	ddr_val = *(volatile uint32_t *)(0x3ffbe058);
+	while (!(ddr_val & 0x1)) {
+		ddr_val = *(volatile uint32_t *)(0x3ffbe058);
+		printf ("\n\r0x3ffbe058:0x%08x", ddr_val);
+	};
+
+	rev_val = C0_mddr_cfg_data[1];
+	change_cal_reg (MDDR_CTRL_29_0, 4, rev_val, 2);
+
+	rev_val = C0_mddr_cfg_data[0];
+
+	printf ("\n\rCalibrate d8-e4:");
+	window_val = calibrate_4ch (MDDR_CTRL_27_0, rev_val, 2);
+	if (window_val == 0xff) {
+		for (i = 1; i < 0x7f; i++) {
+			change_cal_reg (MDDR_CTRL_29_0, 4, i, 2);
+			rev_val = C0_mddr_cfg_data[0];
+			window_val = calibrate_4ch (MDDR_CTRL_27_0, rev_val, 2);
+			printf ("\n\rCalibrate d8-e4: reg_val->0x%02x, window->0x%02x",
+					i, window_val);
+			if (window_val != 0xff) {
+				break;
+			}
+		}
+	}
+	*max_r = *max_r > max_win ? max_win : *max_r;
+	*min_r = *min_r > min_win ? *min_r : min_win;
+
+	rev_val = C0_mddr_cfg_data[1];
+	printf ("\n\rCalibrate e8-f4:");
+	window_val = calibrate_4ch (MDDR_CTRL_29_0, rev_val, 2);
+	if (window_val == 0xff) {
+		return 1;
+	}
+	*max_w = *max_w > max_win ? max_win : *max_w;
+	*min_w = *min_w > min_win ? *min_w : min_win;
+
+	return 0;
+}
+
+int mddr_calibration (uint8_t *buf)
+{
+	uint32_t rev_val, ddr_val;
+	uint32_t i, j;
+	uint8_t window_val_r, window_val_w;
+	uint8_t max_r, max_w;
+	uint8_t min_r, min_w;
+
+	min_r = min_w = 0;
+	max_r = max_w = 0x80;
+	printf ("MDDR Calibration ...\n");
+	mmu_cache_off();
+	for (i = 0; i < SQUARE_LENGTH; i++) {
+		for (j = 0; j < SQUARE_LENGTH; j++) {
+			square_image[i][j] = pattern[i];
+		}
+	}
+	srand (5);
+
+
+	/* Do calibration when set arm-core to 1.4v */
+	at2600_set_default_power_supply(S1V2C1_DOUT_1V4, S1V8C1_DOUT_1V8);
+	__mddr_calibration(&max_r, &min_r, &max_w, &min_w);
+#if 0
+	/* Do calibration when set arm-core to 1.3v */
+	at2600_set_default_power_supply(S1V2C1_DOUT_1V3, S1V8C1_DOUT_1V8);
+	__mddr_calibration(&max_r, &min_r, &max_w, &min_w);
+#endif
+	clk_set_arm (312000000);
+	clk_set_axi (156000000);
+
+	/* Do calibration when set arm-core to 1.2v */
+	at2600_set_default_power_supply(S1V2C1_DOUT_1V2, S1V8C1_DOUT_1V8);
+	__mddr_calibration(&max_r, &min_r, &max_w, &min_w);
+
+#if 0
+	/* Do calibration when set arm-core to 1.1v */
+	at2600_set_default_power_supply(S1V2C1_DOUT_1V1, S1V8C1_DOUT_1V8);
+	__mddr_calibration(&max_r, &min_r, &max_w, &min_w);
+#endif
+
+
+	/* Do calibration when set arm-core to 1.0v */
+	at2600_set_default_power_supply(S1V2C1_DOUT_1V0, S1V8C1_DOUT_1V8);
+	__mddr_calibration(&max_r, &min_r, &max_w, &min_w);
+
+	printf ("\nmin_r->0x%02x. max_r->0x%02x. min_w->0x%02x. max_w->0x%02x", 
+		min_r, max_r, min_w, max_w);
+
+	window_val_r = (max_r + min_r)/2;
+	buf[0] = buf[1] = buf[2] = buf[3] = window_val_r;
+	change_cal_reg (MDDR_CTRL_27_0, 4, window_val_r, 2);
+
+	window_val_w = (max_w + min_w)/2;
+	buf[4] = buf[5] = buf[6] = buf[7] = window_val_w;
+	change_cal_reg (MDDR_CTRL_29_0, 4, window_val_w, 2);
+
+	printf ("\nwindow_r->0x%02x. window_w->0x%02x", window_val_r, window_val_w);
+
+	mmu_cache_on (memory_map);
+	printf ("\nMDDR Calibration end ...\n");
+	return 0;
+fail:
+	mmu_cache_on (memory_map);
+	printf ("\nMDDR Calibration failed ...\n");
+	return -1;
+}
+#endif
 int fast_mddr_calibration (mddr_f_data_t *f_mddr, struct boot_parameter *b_param)
 {
 	uint8_t *cal_data;
@@ -526,10 +729,10 @@ void mddr_core_init(uint32_t size)
 	write64(0x3ffbe0a8, 0x0000000000000000ULL);
 	write64(0x3ffbe0b0, 0x0000000000000000ULL);
 	write64(0x3ffbe0b8, 0x0000000000000000ULL);
-	write64(0x3ffbe0d8, 0x20059d2120059d21ULL);
-	write64(0x3ffbe0e0, 0x20059d2120059d21ULL);
-	write64(0x3ffbe0e8, 0x00059f0900059f09ULL);
-	write64(0x3ffbe0f0, 0x00059f0900059f09ULL);
+	write64(0x3ffbe0d8, 0xe0059d08e0059d08ULL);
+	write64(0x3ffbe0e0, 0xe0059d08e0059d08ULL);
+	write64(0x3ffbe0e8, 0x00051f1f00051f1fULL);
+	write64(0x3ffbe0f0, 0x00051f1f00051f1fULL);
 	write64(0x3ffbe0f8, 0x0000000000000000ULL);
 	write64(0x3ffbe100, 0x0000000000000000ULL);
 	write64(0x3ffbe108, 0xf4013b27000f3100ULL);
@@ -631,10 +834,10 @@ void mddr_core_init(uint32_t size)
 	write64(0x3ffbe0c0, 0x0600010002000100ULL);
 	write64(0x3ffbe0c8, 0x0283028302000200ULL);
 	write64(0x3ffbe0d0, 0x0000000000000283ULL);
-	write64(0x3ffbe0d8, 0x20091e3620091e36ULL);
-	write64(0x3ffbe0e0, 0x20091e3620091e36ULL);
-	write64(0x3ffbe0e8, 0x00091f0f00091f0fULL);
-	write64(0x3ffbe0f0, 0x00091f0f00091f0fULL);
+	write64(0x3ffbe0d8, 0xe0091e08e0091e08ULL);
+	write64(0x3ffbe0e0, 0xe0091e08e0091e08ULL);
+	write64(0x3ffbe0e8, 0x0009151f0009151fULL);
+	write64(0x3ffbe0f0, 0x0009151f0009151fULL);
 	write64(0x3ffbe0f8, 0x0000000000000000ULL);
 	write64(0x3ffbe100, 0x0000000000000000ULL);
 	write64(0x3ffbe108, 0xf3003a27000f1100ULL);

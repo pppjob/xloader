@@ -37,10 +37,9 @@
 #include <asm/arch-atxx/regs_base.h>
 #include <asm/arch-atxx/map_table.h>
 #include <asm/arch-atxx/pm.h>
+#include <asm/arch-atxx/pmu.h>
 
 #include "clock_table.c"
-
-#include "at2600_generic.h"
 
 struct boot_parameter b_param;
 typedef int (boot_jump) (void);
@@ -139,6 +138,8 @@ uint32_t main_course(char *boot_dev_name)
 	struct boot_parameter *parameter = &b_param;
 	boot_info_t *info = &boot_info;
         unsigned int hwcfg, swcfg;
+        struct clk *clk;
+        unsigned long  old_clkarm, old_clkaxi;
 
 	/* enable at2600 26M and I2C */
 	gpio_reg = readl(ATXX_GPIOB_BASE+0x04);
@@ -150,7 +151,6 @@ uint32_t main_course(char *boot_dev_name)
 	mdelay(100);
 
 	i2c_at2600_init();
-	at2600_set_default_power_supply();
 
 	/* read config data area for clock information */
 	ret = env_init();
@@ -158,8 +158,17 @@ uint32_t main_course(char *boot_dev_name)
 	if(!ret){
 		regulate_clock();
 	}
-	
+
+	/* set arm core voltage to 1.xv when mddr initilize */
+	clk = clk_get("arm");
+	old_clkarm = clk_get_rate(clk);
+	clk = clk_get("axi");
+	old_clkaxi = clk_get_rate(clk);
+	at2600_set_default_power_supply(S1V2C1_DOUT_1V35, S1V8C1_DOUT_1V8);
 	memory_init(parameter);
+	at2600_set_default_power_supply(S1V2C1_DOUT_1V35, S1V8C1_DOUT_1V8);
+	clk_set_arm (old_clkarm);
+	clk_set_axi (old_clkaxi);
 
 	hwcfg = pm_read_reg(HWCFGR);
 	if (hwcfg == 1) {

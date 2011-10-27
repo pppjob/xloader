@@ -74,6 +74,9 @@ int atxx_register_clock(struct clk *clk);
 void dump_clock(void);
 void regulate_clock(void);
 void atxx_clock_init(void);
+int clk_set_arm (unsigned long clkv);
+int clk_set_axi (unsigned long clkv);
+
 void set_board_default_clock(struct clock_default_setting *pll,
 				struct clock_default_setting *div, 
 				uint32_t pll_size, uint32_t div_size);

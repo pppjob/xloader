@@ -23,8 +23,8 @@
 #include <common.h>
 #include <linux/types.h>
 #include <asm/arch-atxx/regs_base.h>
+#include <asm/arch-atxx/pmu.h>
 #include "../../../drivers/atxx_i2c.h"
-#include "at2600_generic.h"
 
 #define at2600_ID		0x1
 #define at2600_ADDR		0x70
@@ -97,16 +97,83 @@ void at2600_pm_mddr_power_control(enum power_supply_mode mode, int voltage)
 
 /*--------------------power operation-----------------------------------*/
 
-u8 at2600_set_default_power_supply(void)
+u8 at2600_set_default_power_supply(int arm_core_vol, int mddr_vol)
 {
 	u8 regvalue;
-	printf("\nset arm to 1.3V.");
-	at2600_pm_ap_core_power_control(PS_ON, S1V2C1_DOUT_1V3);
-	printf("\nset ddr2 to 1.8V.");
-	at2600_pm_mddr_power_control(PS_ON,S1V8C1_DOUT_1V8);
+
+	switch (arm_core_vol) {
+		case S1V2C1_DOUT_1V45:
+			printf("\nset arm to 1.45V.");
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V25);
+			mdelay(1);
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V3);
+			mdelay(1);
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V35);
+			mdelay(1);
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V4);
+			mdelay(1);
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V45);
+			mdelay(1);
+			break;
+		case S1V2C1_DOUT_1V4:
+			printf("\nset arm to 1.4V.");
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V25);
+			mdelay(1);
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V3);
+			mdelay(1);
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V35);
+			mdelay(1);
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V4);
+			mdelay(1);
+			break;
+		case S1V2C1_DOUT_1V35:
+			printf("\nset arm to 1.35V.");
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V25);
+			mdelay(1);
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V3);
+			mdelay(1);
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V35);
+			mdelay(1);
+			break;
+		case S1V2C1_DOUT_1V3:
+			printf("\nset arm to 1.35V.");
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V25);
+			mdelay(1);
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V3);
+			mdelay(1);
+			break;
+		case S1V2C1_DOUT_1V25:
+			printf("\nset arm to 1.25V.");
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V25);
+			mdelay(1);
+			break;
+		case S1V2C1_DOUT_1V2:
+			printf("\nset arm to 1.2V.");
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V2);
+			mdelay(1);
+			break;
+		case S1V2C1_DOUT_1V1:
+			printf("\nset arm to 1.1V.");
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V1);
+			mdelay(1);
+			break;
+		case S1V2C1_DOUT_1V0:
+			printf("\nset arm to 1.0V.");
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V1);
+			mdelay(1);
+			at2600_pm_ap_core_power_control(PS_ON,S1V2C1_DOUT_1V0);
+			mdelay(1);
+			break;
+		default:
+			printf("arm voltage Not support, \n");
+			break;
+	}
+
+	printf("\nset mddr to 1.8V.");
+	at2600_pm_mddr_power_control(PS_ON, mddr_vol);
+	mdelay(1);
 
 }
-
 u8 i2c_at2600_init(void)
 {
 	u8 buf;
