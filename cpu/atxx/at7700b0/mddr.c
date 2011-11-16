@@ -904,24 +904,38 @@ void mddr_core_init(uint32_t size)
 }
 
 #define MDDR_128M		(128 * 1024 * 1024)
+#define MDDR_256M		(256 * 1024 * 1024)
+#define MDDR_512M		(512 * 1024 * 1024)
 #define MDDR_TEST_DATA1		0x12345678
 #define MDDR_TEST_DATA2		0x55aa7068
+#define MDDR_TEST_DATA3		0xaa556870
+#define MDDR_TEST_DATA4		0x7068aa55
 
-/* check for 128M, 256M only */
-static uint32_t cal_get_mddr_size(void)
+/* check for 128M, 256M 512M 1G */
+uint32_t cal_get_mddr_size(void)
 {
 	uint32_t data;
 
 	writel(MDDR_TEST_DATA1, MDDR_BASE_ADDR);
 	writel(MDDR_TEST_DATA2, MDDR_BASE_ADDR + MDDR_128M);
-	mdelay(5);
 	data = readl(MDDR_BASE_ADDR);
-	if (data == MDDR_TEST_DATA1) {
-		return MDDR_256;
-	} else {
+	if (data == MDDR_TEST_DATA2) {
 		return MDDR_128;
 	}
 
+	writel(MDDR_TEST_DATA3, MDDR_BASE_ADDR + MDDR_256M);
+	data = readl(MDDR_BASE_ADDR);
+	if (data == MDDR_TEST_DATA3) {
+		return MDDR_256;
+	}
+
+	writel(MDDR_TEST_DATA4, MDDR_BASE_ADDR + MDDR_512M);
+	data = readl(MDDR_BASE_ADDR);
+	if (data == MDDR_TEST_DATA4) {
+		return MDDR_512;
+	} else	{
+		return MDDR_1024;
+	}
 }
 
 static uint32_t get_mddr_size(void)

@@ -28,6 +28,7 @@ enum mddr_size {
 	MDDR_128,
 	MDDR_256,
 	MDDR_512,
+	MDDR_1024,
 	MDDR_INVALIDATE,
 };
 
