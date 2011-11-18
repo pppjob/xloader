@@ -976,18 +976,34 @@ void mddr_init(struct boot_parameter *b_param)
 {
 	factory_data_t * f_data;
 	mddr_f_data_t * f_mddr = NULL;
-	size_t size;
+	char *p_mddr;
+	size_t size = 0 ,i = 0;
 	int ret;
 
-	f_data = factory_data_get(FD_MDDR);
+	f_data = factory_data_get(FD_CONFIG);
 	if (f_data) {
-		b_param->mddr_data_send = 0;
-		f_mddr = (mddr_f_data_t *)f_data->fd_buf;
-		size = f_mddr->mddr_size;
-	}else {
-		printf("MDDR factory data not found\n");
 		b_param->mddr_data_send = 1;
-		size = get_mddr_size();		
+
+		if((p_mddr = strstr(f_data->fd_buf, "phys_mem")) == NULL) {
+			size = MDDR_256;
+		} else {
+			while(*p_mddr < '0' || *p_mddr > '9')
+				p_mddr ++;
+			while(*p_mddr >= '0' && *p_mddr <= '9') {
+				size *= 10;
+				size += (*p_mddr -'0');
+				p_mddr ++;
+			}
+
+			while((size / 64) >> i)
+				i++;
+			size = i -1;
+		}
+		b_param->f_mddr.mddr_size = size;
+	} else {
+		printf("MDDR factory data not found\n");
+		b_param->mddr_data_send = 0;
+		size = MDDR_256;
 		b_param->f_mddr.mddr_size = size;
 	}
 
