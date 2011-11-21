@@ -110,6 +110,10 @@ int board_init(void)
 		while(1);
 	}
 
+	/* improve arm power before set default clock */
+	i2c_at2600_init();
+	at2600_set_default_power_supply(S1V2C1_DOUT_1V35, S1V8C1_DOUT_1V8);
+
 	mmu_cache_on(memory_map);
 	atxx_clock_init();
 	set_board_default_clock(pll_setting, div_setting,
@@ -150,8 +154,6 @@ uint32_t main_course(char *boot_dev_name)
 	writel(gpio_reg,  ATXX_GPIOB_BASE+0x0);
 	mdelay(100);
 
-	i2c_at2600_init();
-
 	/* read config data area for clock information */
 	ret = env_init();
 	/* enviroment exist, follow its setting */
@@ -164,7 +166,7 @@ uint32_t main_course(char *boot_dev_name)
 	old_clkarm = clk_get_rate(clk);
 	clk = clk_get("axi");
 	old_clkaxi = clk_get_rate(clk);
-	at2600_set_default_power_supply(S1V2C1_DOUT_1V35, S1V8C1_DOUT_1V8);
+
 	memory_init(parameter);
 	at2600_set_default_power_supply(S1V2C1_DOUT_1V35, S1V8C1_DOUT_1V8);
 	clk_set_arm (old_clkarm);

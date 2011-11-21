@@ -45,7 +45,17 @@ struct boot_parameter b_param;
 
 int board_init(void)
 {
-        unsigned int proccfg;
+    unsigned int proccfg;
+
+    /* set gpio 38 as low to enable pmu work */
+    atxx_request_gpio(38);
+    atxx_set_gpio_direction(38, 0);
+    atxx_gpio_set(38,0);
+    mdelay(50);
+
+	/* improve arm power before set default clock */
+	i2c_at2600_init();
+	at2600_set_default_power_supply(S1V2C1_DOUT_1V35, S1V8C1_DOUT_1V8);
 
 	mmu_cache_on(memory_map);
 	atxx_clock_init();
@@ -71,14 +81,6 @@ uint32_t main_course(char *boot_dev_name)
 	boot_info_t *info = &boot_info;
         unsigned int hwcfg, swcfg;
 
-    /* set gpio 38 as low to enable pmu work */
-    atxx_request_gpio(38);
-    atxx_set_gpio_direction(38, 0);
-    atxx_gpio_set(38,0);
-    mdelay(50);
-
-	i2c_at2600_init();
-
 	/* read config data area for clock information */
 	ret = env_init();
 	/* enviroment exist, follow its setting */
@@ -91,7 +93,7 @@ uint32_t main_course(char *boot_dev_name)
 	old_clkarm = clk_get_rate(clk);
 	clk = clk_get("axi");
 	old_clkaxi = clk_get_rate(clk);
-	at2600_set_default_power_supply(S1V2C1_DOUT_1V35, S1V8C1_DOUT_1V8);
+
 	memory_init(parameter);
 	at2600_set_default_power_supply(S1V2C1_DOUT_1V35, S1V8C1_DOUT_1V8);
 	clk_set_arm (old_clkarm);

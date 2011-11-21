@@ -110,6 +110,10 @@ int board_init(void)
 		while(1);
 	}
 
+	/* improve arm power before set default clock */
+	i2c_at2600_init();
+	at2600_set_default_power_supply(S1V2C1_DOUT_1V35, S1V8C1_DOUT_1V8);
+
 	mmu_cache_on(memory_map);
 	atxx_clock_init();
 	set_board_default_clock(pll_setting, div_setting,
@@ -128,11 +132,9 @@ uint32_t main_course(char *boot_dev_name)
 	int ret;
 	struct boot_parameter *parameter = &b_param;
 	boot_info_t *info = &boot_info;
-        unsigned int hwcfg, swcfg;
-        struct clk *clk;
-        unsigned long  old_clkarm, old_clkaxi;
-
-	i2c_at2600_init();
+    unsigned int hwcfg, swcfg;
+    struct clk *clk;
+    unsigned long  old_clkarm, old_clkaxi;
 
 	/* read config data area for clock information */
 	ret = env_init();
@@ -146,7 +148,7 @@ uint32_t main_course(char *boot_dev_name)
 	old_clkarm = clk_get_rate(clk);
 	clk = clk_get("axi");
 	old_clkaxi = clk_get_rate(clk);
-	at2600_set_default_power_supply(S1V2C1_DOUT_1V35, S1V8C1_DOUT_1V8);
+
 	memory_init(parameter);
 	at2600_set_default_power_supply(S1V2C1_DOUT_1V35, S1V8C1_DOUT_1V8);
 	clk_set_arm (old_clkarm);
