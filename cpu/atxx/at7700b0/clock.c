@@ -27,6 +27,7 @@
 #include <asm/arch-atxx/regs_base.h>
 #include <environment.h>
 #include <linux/vsprintf.h>
+#include <factory.h>
 
 const char *pll_names[] = {
 	"pll1",
@@ -909,6 +910,39 @@ void regulate_clock(void)
 	printf("clk-vpclk %d ", clk_get_rate(clk_get("vpclk")));
 	printf("clk-gclk %d ", clk_get_rate(clk_get("gclk")));
 	printf("clk-vsclk %d \n", clk_get_rate(clk_get("vsclk")));
+
+	return;
+}
+
+void regulate_clock_fd(void)
+{
+	int ret;
+	const char *s;
+	unsigned long clkv = 0;
+	factory_data_t *fd;
+
+	if((fd = factory_data_get(FD_CONFIG)) == NULL) {
+		return -1;
+	}
+
+	if ((s = strstr (fd->fd_buf, "clk-arm=")) != NULL) {
+		clkv = simple_strtoul (s + strlen("clk-arm="), NULL, 0);
+		ret = clk_set_arm(clkv);
+		if (ret < 0){
+			printf("set arm clk fail %d\n", ret);
+		}
+	}
+
+	if ((s = strstr (fd->fd_buf, "clk-mddr=")) != NULL) {
+		clkv =  simple_strtoul (s + strlen("clk-mddr="), NULL, 0);
+		ret = clk_set_mddr(clkv);
+		if (ret < 0){
+			printf("set mddr clk fail %d\n", ret);
+		}
+	}
+
+	printf("clk-arm %d ", clk_get_rate(clk_get("arm")));
+	printf("clk-mddr %d\n", clk_get_rate(clk_get("mddr")));
 
 	return;
 }

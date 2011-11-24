@@ -40,7 +40,7 @@ factory_data_t *factory_data_get(int fd_index)
 	int ret;
 
 	offset = FACTORY_DATA_BASE_OFFSET;
-	offset += fd_index * min(nd.writesize, 4096);
+	offset += fd_index * max(nd.writesize, 4096);
 	length = sizeof(struct factory_data_page);
 	
 	/* read out the data */	

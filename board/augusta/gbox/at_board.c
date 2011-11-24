@@ -84,6 +84,8 @@ uint32_t main_course(char *boot_dev_name)
 	/* enviroment exist, follow its setting */
 	if(!ret) {
 		regulate_clock();
+	} else {
+		regulate_clock_fd();
 	}
 
 	/* set arm core voltage to 1.xv when mddr initilize */

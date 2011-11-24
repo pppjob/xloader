@@ -73,6 +73,7 @@ int clk_set_parent(struct clk *clk, struct clk *parent);
 int atxx_register_clock(struct clk *clk);
 void dump_clock(void);
 void regulate_clock(void);
+void regulate_clock_fd(void);
 void atxx_clock_init(void);
 int clk_set_arm (unsigned long clkv);
 int clk_set_axi (unsigned long clkv);

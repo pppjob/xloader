@@ -68,6 +68,7 @@ static inline long IS_ERR(const void *ptr)
 } 
 
 #define min(x,y) ((x)<(y)?(x):(y))
+#define max(x,y) ((x)>(y)?(x):(y))
 
 #include <config.h>
 #include <linux/types.h>
