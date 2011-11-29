@@ -51,7 +51,7 @@ int board_init(void)
 	atxx_request_gpio(38);
 	atxx_set_gpio_direction(38, 0);
 	atxx_gpio_set(38,0);
-	mdelay(50);
+	mdelay(10);
 
 	/* improve arm power before set default clock */
 	i2c_at2600_init();
