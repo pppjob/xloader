@@ -250,7 +250,7 @@ static  void nfc_config_big_page(int width, int addr)
 
 	if (width == NAND_BUSWIDTH_16) {
 		atxx_nd_write_reg(REG_NFC_FADDR0, nd_addr);
-		atxx_nd_write_reg(REG_NFC_BADDR, nd_addr);
+		atxx_nd_write_reg(REG_NFC_BADDR, (addr & 0xffff) / 2);
 	} else {
 		atxx_nd_write_reg(REG_NFC_FADDR0, addr);
 	}
@@ -275,6 +275,7 @@ static  void nfc_send_readpage_udf_cmd(u32 data_len, u32 addr_len, u32 ecc_enabl
 
 	atxx_nd_write_reg(REG_NFC_CCFG, (NAND_CMD_RNDOUTSTART << 8) | NAND_CMD_RNDOUT);
 	atxx_nd_write_reg(REG_NFC_FADDR0, 0);
+	atxx_nd_write_reg(REG_NFC_FADDR1, 0);
 	atxx_nd_write_reg(REG_NFC_BADDR, 0);
 
 	if (ecc_enable) {
@@ -874,7 +875,7 @@ static  void nfc_send_readid_cmd(void)
 	atxx_nd_write_reg(REG_NFC_FADDR0, ID_DATA_ADDR);
 	cmd = (NFC_CMD_READ_ID << NFC_CMD_CMD_SHIFT) |
 		(4 << NFC_CMD_DATA_LEN_SHIFT) |
-		(1 << NFC_CMD_ADDR_LEN_SHIFT) | NFC_CMD_ENABLE;
+		(2 << NFC_CMD_ADDR_LEN_SHIFT) | NFC_CMD_ENABLE;
 	atxx_nd_write_reg(REG_NFC_CMD, cmd);
 	WAIT_CMD_END();
 }
@@ -1114,8 +1115,8 @@ int atxx_nd_scan(struct nand_info *nd, int maxchips)
 	}
 
     /*oob check baseaddr should set to pagesize only to make sure there is enough space.*/
-	if ((nd->oobsize / nd->ecc.steps) > 32)
-		reg_data = nd->writesize | (0x40 << 16);
+	if ((nd->oobsize / nd->ecc.steps) > 64)
+		reg_data = nd->writesize | ((nd->oobsize / nd->ecc.steps) << 16);
 	else
 		reg_data = (nd->writesize + nd->oobsize)
 	    	| ((nd->oobsize / nd->ecc.steps) << 16);
@@ -1266,15 +1267,15 @@ static int atxx_nd_read_page_hwecc(struct nand_info *nd,
 			memcpy((uint8_t *) buf, (uint8_t *) NFC_READ_BUF,
 					nd->writesize);
 #else
-			/*using code word check only for 4k pagesize 
+			/*using code word check for 4k and 8k pagesize
 			  to improve read speed */
-			if (nd->writesize == 4096) {
-				WAIT_DECODE_CODE_READY(4);
-				atxx_nd_dma_read(buf, 0, 0x800);
+			if (nd->writesize >= 4096) {
+				WAIT_DECODE_CODE_READY((nd->writesize / size_per_sector) >> 1);
+				atxx_nd_dma_read(buf, 0, nd->writesize >> 1);
 
 				WAIT_CMD_END();
-				atxx_nd_dma_read(buf + 0x800, 0x800,
-						0x800);
+				atxx_nd_dma_read(buf + (nd->writesize >> 1), nd->writesize >> 1,
+					nd->writesize >> 1);
 
 			} else {
 				WAIT_CMD_END();
@@ -1287,7 +1288,7 @@ static int atxx_nd_read_page_hwecc(struct nand_info *nd,
 	/* change to uboot */
 	status1 = atxx_nd_read_reg(REG_NFC_ECCSTATUS1);
 	status2 = atxx_nd_read_reg(REG_NFC_ECCSTATUS2);
-	if (nd->writesize == 4096) {	
+	if (nd->writesize / size_per_sector == 8) {
 		/* ecc status */
 		if ((status1 & (NFC_ECC_UNCORRECT1 | NFC_ECC_UNCORRECT2 |
 				NFC_ECC_UNCORRECT3 | NFC_ECC_UNCORRECT4)) |
@@ -1298,7 +1299,7 @@ static int atxx_nd_read_page_hwecc(struct nand_info *nd,
 					page, status1, status2);
 			goto err;
 		}
-	} else if (nd->writesize == 2048) {	
+	} else if (nd->writesize / size_per_sector == 4) {
 		/* ecc status */
 		if (status1 & (NFC_ECC_UNCORRECT1 | NFC_ECC_UNCORRECT2 |
 				NFC_ECC_UNCORRECT3 | NFC_ECC_UNCORRECT4)) {
@@ -1491,7 +1492,7 @@ int nand_read_skip_bad(struct nand_info *nd, size_t offset, size_t length,
 			page_addr = addr - (addr & align);
 			
 			if ((page_addr != addr) || (left_to_read < nd->writesize)) {
-				rval = atxx_nd_read_page_hwecc(nd, nd->databuf, 
+				rval = atxx_nd_read_page_hwecc(nd, nd->databuf,
 					(page_addr >> nd->page_shift));
 				step = min(left_to_read, nd->writesize - (addr & align));
 				memcpy(p_buffer, nd->databuf + (addr & align), step);

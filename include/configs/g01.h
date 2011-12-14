@@ -35,7 +35,7 @@
 
 /* Envioment */
 /* Fixme :reduce size , not use crc check */
-#define CONFIG_ENV_SIZE			4096	/*4096 byte only*/
+#define CONFIG_ENV_SIZE			8192	/*8192 byte only*/
 #define CONFIG_ENV_OFFSET		0x400000
 #define CONFIG_ENV_RANGE		0x200000
 
