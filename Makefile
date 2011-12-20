@@ -183,6 +183,10 @@ m70p_config :    unconfig
 a500_config :    unconfig
 	@./mkconfig $(@:_config=)  arm atxx a500 augusta at7700b0;\
 	touch ./include/config.h
+
+s9l_config :    unconfig
+	@./mkconfig $(@:_config=)  arm atxx s9l augusta at7700b0;\
+	touch ./include/config.h	
 #########################################################################
 ## OMAP1 (ARM92xT) Systems
 #########################################################################
