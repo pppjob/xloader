@@ -194,7 +194,7 @@ u8 i2c_at2600_init(void)
 	gpio_reg = readl(ATXX_GPIOB_BASE+0x0);
 	gpio_reg &= ~(0x1 << 6);
 	writel(gpio_reg,  ATXX_GPIOB_BASE+0x0);
-	mdelay(100);
+	mdelay(10);
 
 	/*Init i2c*/
 	i2c_init(1,at2600_ADDR);
