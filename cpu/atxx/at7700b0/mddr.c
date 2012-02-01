@@ -1003,7 +1003,7 @@ void mddr_init(struct boot_parameter *b_param)
 	} else {
 		printf("MDDR factory data not found\n");
 		b_param->mddr_data_send = 0;
-		size = MDDR_256;
+		size = MDDR_512;
 		b_param->f_mddr.mddr_size = size;
 	}
 
