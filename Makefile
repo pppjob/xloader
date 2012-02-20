@@ -160,6 +160,11 @@ fpga7700b0_config :    unconfig
 	@./mkconfig $(@:_config=)  arm atxx fpga7700b0 augusta at7700b0;\
 	touch ./include/config.h
 
+fpga8700_config :    unconfig
+	@./mkconfig $(@:_config=)  arm atxx fpga8700 augusta at8700;\
+	touch ./include/config.h
+
+
 atb1004_config :    unconfig
 	@./mkconfig $(@:_config=)  arm atxx atb1004 augusta at7700b0;\
 	touch ./include/config.h
