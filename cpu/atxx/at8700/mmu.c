@@ -77,19 +77,13 @@ void mmu_cache_on(struct map_desc *memory_map)
 {
 	int ret;
 
+	arm_init_before_mmu();
 	ret = setup_mmu_table(memory_map);
 	if (ret == 0)
-		__mmu_cache_on(mmu_table);
+		dcache_enable();
 	return;
 }
-
-extern void __mmu_cache_off(void);
-void mmu_cache_off(void)
-{
-	__mmu_cache_off();
-}
-
-extern void __flush_cache(void);
+#if 0
 void arm1176_cache_flush(void)
 {
 	__flush_cache();
@@ -100,4 +94,4 @@ void  flush_cache (unsigned long dummy1, unsigned long dummy2)
 	arm1176_cache_flush();
 	return;
 }
-
+#endif

@@ -232,7 +232,8 @@ static void atxx_nd_dma_read(uint8_t * addr,
 	uint32_t m_dma;
 
 	m_dma = (uint32_t)addr;
-	flush_cache(0, 0);
+	//flush_cache(0, 0);
+	flush_cache(addr, len);
 	atxx_nd_write_reg(REG_NFC_DMA_SAR, NFC_READ_BUF_ADDR + read_buf_off);
 	atxx_nd_write_reg(REG_NFC_DMA_DAR, m_dma);
 	atxx_nd_write_reg(REG_NFC_DMA_CTRL, 

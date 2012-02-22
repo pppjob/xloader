@@ -23,7 +23,8 @@
 
 void cleanup_before_boot(void)
 {
-	arm1176_cache_flush();
+	//arm1176_cache_flush();
+	flush_dcache_all();
 	return;
 }
 

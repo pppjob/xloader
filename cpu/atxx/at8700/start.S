@@ -102,7 +102,7 @@ reset:
 	 * set the cpu to SVC32 mode
 	 */
 	mrs	r0, cpsr
-	bic	r0, r0, #0x3f
+	bic	r0, r0, #0x1f
 	orr	r0, r0, #0xd3
 	msr	cpsr, r0
 
@@ -138,6 +138,7 @@ cpu_init_crit:
 	mov	r0, #0			@ set up for MCR
 	mcr	p15, 0, r0, c8, c7, 0	@ invalidate TLBs
 	mcr	p15, 0, r0, c7, c5, 0	@ invalidate icache
+	mcr     p15, 0, r0, c7, c5, 6   @ invalidate BP array
 
 	/*
 	 * disable MMU stuff and caches
@@ -163,45 +164,7 @@ mmu_disable:
 	nop
 	nop
 
-#ifdef CONFIG_ENABLE_MMU
-enable_mmu:
-	/* enable domain access */
-	ldr	r5, =0x0000ffff
-	mcr	p15, 0, r5, c3, c0, 0	/* load domain access register */
-
-	/* Set the TTB register */
-	ldr	r0, _mmu_table_base
-	ldr	r1, =CONFIG_SYS_PHY_UBOOT_BASE
-	ldr	r2, =0xfff00000
-	bic	r0, r0, r2
-	orr	r1, r0, r1
-	mcr	p15, 0, r1, c2, c0, 0
-
-	/* Enable the MMU */
-	mrc	p15, 0, r0, c1, c0, 0
-	orr	r0, r0, #1		/* Set CR_M to enable MMU */
-
-	/* Prepare to enable the MMU */
-	adr	r1, skip_hw_init
-	and	r1, r1, #0x3fc
-	ldr	r2, _TEXT_BASE
-	ldr	r3, =0xfff00000
-	and	r2, r2, r3
-	orr	r2, r2, r1
-	b	mmu_enable
-
-	.align 5
-	/* Run in a single cache-line */
-mmu_enable:
-
-	mcr	p15, 0, r0, c1, c0, 0
-	nop
-	nop
-	mov	pc, r2
-#endif
-
-skip_hw_init:
-	/* Set up the stack						    */
+	/* Set up the stack */
 stack_setup:
 #ifdef CONFIG_UNCONTINUOUS_MEM
 	ldr	r0, =CONFIG_SYS_MALLOC_START		/* upper 128 KB: relocated uboot   */
@@ -237,16 +200,15 @@ clbss_l:
 	add	r0, r0, #4
 	cmp	r0, r1
 	ble	clbss_l
-
+	
+	bl	_dcache_enable		/* enable cache and mmu */
 	ldr	pc, _start_armboot
 
+_dcache_enable:
+	.word dcache_enable
 _start_armboot:
 	.word start_armboot
 
-#ifdef CONFIG_ENABLE_MMU
-_mmu_table_base:
-	.word mmu_table
-#endif
 
 /*
  *************************************************************************
