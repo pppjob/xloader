@@ -31,7 +31,7 @@ SECTIONS
 	. = ALIGN(4);
 	.text :
 	{
-		cpu/atxx/start.o	(.text)
+		cpu/atxx/at8700/start.o	(.text)
 		*(.text)
 	}
 

@@ -28,7 +28,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= lib$(CPU).a
 
-START	:= start.o
+START	:= at8700/start.o
 OBJS	:= clock_common.o cpu.o parse_bootparam.o gpio.o
 #ifdef CMD_FACTORY
 OBJS += factory.o

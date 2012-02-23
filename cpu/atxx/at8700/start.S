@@ -201,11 +201,11 @@ clbss_l:
 	cmp	r0, r1
 	ble	clbss_l
 	
-	bl	_dcache_enable		/* enable cache and mmu */
+	;bl	_dcache_enable		/* enable cache and mmu */
 	ldr	pc, _start_armboot
 
-_dcache_enable:
-	.word dcache_enable
+;_dcache_enable:
+;	.word dcache_enable
 _start_armboot:
 	.word start_armboot
 

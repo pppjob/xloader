@@ -63,7 +63,7 @@ uint32_t main_course(char *boot_dev_name)
 		/* uart ccc mode */
 		goto done;
 	}
-
+#if 0
 	/* nand read to mddr */
 	ret = nand_read_skip_bad(&nd, info->nand_offset, 
 		info->firm_size, 
@@ -80,7 +80,7 @@ uint32_t main_course(char *boot_dev_name)
 	}
 	strcpy(boot_dev_name, "Nand");
 	return info->run_address;
-
+#endif
 done:
 	/* load uboot from uart */
 	strcpy(boot_dev_name, "UART");
