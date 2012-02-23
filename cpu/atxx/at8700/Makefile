@@ -30,7 +30,7 @@ LIB	= lib$(SOC).a
 
 #SOBJS	=
 
-COBJS-y	+= cache-mddr.o mmu.o clock.o
+COBJS-y	+= mddr.o mmu.o clock.o
 
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))
 
